@@ -1,0 +1,75 @@
+<style type="text/css" >
+  ul.list{
+    overflow-x: hidden;
+  }
+</style>
+
+<script type="text/javascript">
+  tt_cancel_show = '/patients/show/<%= @patient.id %>';
+
+<% if @diagnosis.length <= 0 %>
+
+    tt_cancel_destination = '/encounters/new/outpatient_diagnosis/?patient_id=' +
+          '<%=  "#{@patient.id}#{ (@diagnosis.length <= 0 ? "&next=true" : "") }" %>';
+    
+<% else %>
+
+    tt_cancel_destination = "/encounters/new/observations/?patient_id=<%=  @patient.id %>";
+
+    // tt_cancel_destination = '/encounters/new/refer_out/?patient_id=<%=  "#{@patient.id}" %>';
+<%  end %>
+  
+</script>
+
+<div style="padding: 15px;">
+  <h2>Patient Diagnoses</h2>
+  <div style="font-size: 22pt;">
+    <ul class="list" style="height:400px;width:970px;">
+      <% diagnoses = @diagnosis
+      pos = 0
+      for observation in diagnoses do
+        pos += 1
+      %>
+        <li class="data <%= cycle('even', 'odd') %>">
+          <!--div style="float:right;padding:7px;">
+          <%= img_button_submit_to "/patients/void/#{@patient.patient_id}", "/images/cancel_flat_small.png",
+            {:confirm => "Are you sure you want to void this diagnoisis?"}, {:encounter_id => 77} -%>
+          </div-->
+
+          <% if pos == 1 %>
+            <div style="float:left; padding-bottom: 15px; border-bottom: 1px solid #ccc; width:99%; margin-bottom: 5px;">Diagnoses</div>
+          <% end %>
+
+          <div style="clear:left; padding: 8px; font-size: 0.8em;" class="summary">
+            <%= "#{pos.to_s + "." if !observation.blank?}  #{observation.titleize}" -%>
+          </div>
+        </li>
+      <% end %>
+      <% if diagnoses.blank? %>
+        <li>No Diagnoses are available for Patient in current visit</li>
+      <% end %>
+    </ul>
+  </div>
+  <div style="float:right;padding-right:20px;margin-top:-15px;">
+    <button class="button green" onclick="window.location = '/encounters/new/outpatient_diagnosis?patient_id=<%= @patient.id %>&next=true'"><span>Add Diagnoses</span></button><br/>
+  </div>
+</div>
+
+<div style="z-index:11;bottom:0px; height: 82px; width: 100%; left: 0px;
+     right: -66px; position: absolute; background-color: #333333; padding: 0px;">
+
+  <button onclick="window.location = tt_cancel_destination;" class="button navButton green"
+          id="nextButton" style="margin-top: 10px; margin-right: 20px;" ><span>Finish</span>
+  </button>
+  <!--button id="backButton" class="button navButton gray" onclick="window.location = '/encounters/new/outcome?patient_id=<%= @patient.id %>';">
+    <span>
+      Back
+    </span>
+  </button-->
+  <button id="cancelButton" class="button navButton red" onclick="if (tt_cancel_show) window.location = tt_cancel_show;"
+           style="margin-top: 10px;">
+    <span>
+      Cancel
+    </span>
+  </button>
+</div>

@@ -1,0 +1,381 @@
+<script>
+  var tt_cancel_destination = "/encounters/new/observations/?patient_id=<%=  @patient.id %>"
+  var timedEvent;
+
+  function setDate(elementId){
+
+    if ($(elementId).value.toLowerCase() == 'unknown'){
+      $(elementId+'_value_datetime').value = null;
+      $(elementId+'_value_modifier').value = null;
+    }
+    else{
+      $(elementId+'_value_datetime').value = new Date($(elementId).value);  //.replace(/-/g, '/'));
+    }
+  }
+
+  function checkHIVTestDate(){
+    var hiv_test_date_str = $("hiv_test_date").value.replace(/-/g, '/');
+    var hiv_test_date     = new Date(hiv_test_date_str);
+    var today             = new Date(Date.now());
+
+    var weeks_ago = parseInt((today.getTime()- hiv_test_date.getTime())/ (1000 * 60 * 60 * 24 * 7));
+   
+    if (weeks_ago > 12){
+      dispatchMessage("Patient needs to be tested again", tstMessageBoxType.OKOnly);
+      return "true";
+    }
+    return "false";
+  }
+
+  // Every 500 milliseconds update the Next/Finish button
+  function updateNextFinish(){
+    if (tstInputTarget.value == '')
+      $('nextButton').innerHTML = '<span>Finish</span>';
+    else
+      $('nextButton').innerHTML = '<span>Next</span>';
+    setTimeout(updateNextFinish, 500)
+  }
+
+  function calculateEDOD(){
+    var edod = "";
+    var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    if(!$('expected_date_of_delivery')){
+      var div = document.createElement("div");
+      div.id = "expected_date_of_delivery";
+      div.className = "statusLabel";
+
+      $("inputFrame" + tstCurrentPage).appendChild(div);
+    }
+
+    if($("touchscreenInput" + tstCurrentPage).value.trim().length > 0){
+      var theDate = new Date($("touchscreenInput" + tstCurrentPage).value.trim());
+
+      theDate.setDate(theDate.getDate() + 7);
+
+      theDate.setMonth(theDate.getMonth() + 9);
+
+      edod = (theDate.getDate() + "-" + month[theDate.getMonth()] + "-" + theDate.getFullYear());
+    }
+
+    $("expected_date_of_delivery").innerHTML = "Expected Date Of Delivery: <i style='font-size: 1.2em; float: right;'>" + edod + "</i>";
+    
+    timedEvent = setTimeout('calculateEDOD()', 500);
+  }
+
+  function calculateBP(pos){
+    var bp;
+    
+    if(!$('bp')){
+      var div = document.createElement("div");
+      div.id = "bp";
+      div.className = "statusLabel";
+
+      $("inputFrame" + tstCurrentPage).appendChild(div);
+    }
+
+    if(pos == 1){
+      bp = ($("touchscreenInput" + tstCurrentPage).value.trim().length > 0 ? $("touchscreenInput" +
+        tstCurrentPage).value.trim() : "?") +
+        "/" + ($("diastolic_blood_pressure").value.trim().length > 0 ? $("diastolic_blood_pressure").value.trim() : "?");
+    } else if(pos == 2){
+      bp = ($("systolic_blood_pressure").value.trim().length > 0 ? $("systolic_blood_pressure").value.trim() : "?") +
+        "/" + ($("touchscreenInput" + tstCurrentPage).value.trim().length > 0 ? $("touchscreenInput" +
+        tstCurrentPage).value.trim() : "?");
+    }
+    
+    $("bp").innerHTML = "Blood Pressure: <i style='font-size: 1.2em; float: right;'>" + bp + "</i>";
+
+    timedEvent = setTimeout('calculateBP(' + pos + ')', 500);
+  }
+
+  function changeIds(){
+    $("6").id = "six";
+    $("7").id = "seven";
+    $("8").id = "eight";
+    $("9").id = "nine";
+
+    $("clearButton").onclick = function(){
+      enableButtons();
+    }
+    $("1").onclick = function(){
+      disableButtons();
+    }
+    $("2").onclick = function(){
+      disableButtons();
+    }
+    $("3").onclick = function(){
+      disableButtons();
+    }
+    $("4").onclick = function(){
+      disableButtons();
+    }
+    $("5").onclick = function(){
+      disableButtons();
+    }
+  }
+
+  function disableButtons(){
+    $("1").className = "keyboardButton gray";
+    $("2").className = "keyboardButton gray";
+    $("3").className = "keyboardButton gray";
+    $("4").className = "keyboardButton gray";
+    $("5").className = "keyboardButton gray";
+
+    $("1").onmousedown = function(){};
+    $("2").onmousedown = function(){};
+    $("3").onmousedown = function(){};
+    $("4").onmousedown = function(){};
+    $("5").onmousedown = function(){};
+  }
+
+  function enableButtons(){
+    $("1").className = "keyboardButton blue";
+    $("2").className = "keyboardButton blue";
+    $("3").className = "keyboardButton blue";
+    $("4").className = "keyboardButton blue";
+    $("5").className = "keyboardButton blue";
+
+    $("1").onmousedown = function() {
+      press('1');
+    }
+    $("2").onmousedown = function() {
+      press('2');
+    }
+    $("3").onmousedown = function() {
+      press('3');
+    }
+    $("4").onmousedown = function() {
+      press('4');
+    }
+    $("5").onmousedown = function() {
+      press('5');
+    }
+  }
+
+</script>
+<style>
+  .statusLabel {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: #efe;
+    font-size: 2em;
+    padding: 15px;
+    width: 920px;
+    top: 120px;
+    margin-left: 50%;
+    left: -470px;
+    -moz-border-radius: 20px;
+  }
+
+  .level #zero,
+  .level #backspace,
+  .level #six,
+  .level #seven,
+  .level #eight,
+  .level #nine {
+    display: none;
+  }
+</style>
+<style>
+  #num {display: none;}
+  #Unknown {display: none;}
+</style>
+<form id='medical_history' action="/encounters/create" method='post'>
+  <% default={
+    :allowFreeText => 'true',
+  } %>
+
+  <%= hidden_field_tag "next_url", "/encounters/new/observations/?patient_id=#{@patient.id}" %>
+
+  <%= hidden_field_tag "encounter[encounter_type_name]", "OBSERVATIONS" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <% options = default.merge({
+      :id => "fundus",
+      :helptext => "Fundus (weeks)",
+      :field_type => "number",
+      :tt_pageStyleClass => "NumbersOnly"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "FUNDUS IN CM", {:id => 'fundus_concept_name'}) %>
+  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "lie",
+      :helptext => "Lie",
+      :field_type => "text"
+    }) %>
+  <% @lie = ["", "Longitudinal", "Transverse", "Oblique"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "LIE", {:id => 'lie_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@lie),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "presentation",
+      :helptext => "Presentation",
+      :field_type => "text"
+    }) %>
+  <% @presentation = ["", "Compound", "Cephalic", "Breech", "Face", "Footling", "Cord", "Brow"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "PRESENTATION", {:id => 'presentation_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@presentation),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "position",
+      :helptext => "Position",
+      :field_type => "text"
+    }) %>
+  <% @position = ["", "Vertex",
+    "Breech",
+    "Face",
+    "Shoulder"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "POSITION", {:id => 'position_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@position),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+<%#--------------------------------------------------------%>
+
+
+  <% options = default.merge({
+      :id => "vertex",
+      :helptext => "Vertex Position Type",
+      :field_type => "text",
+      :condition => "$('position').value.trim().toUpperCase() == 'VERTEX';"
+    }) %>
+  <% @vertex = ["", "Left Occipito Anterior",
+    "Left Occipito Transverse",
+    "Left Occipito Posterior",
+    "Right Occipito Anterior",
+    "Right Occipito Transverse",
+    "Right Occipito Posterior"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "VERTEX", {:id => 'position_vertex_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@vertex),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <% options = default.merge({
+      :id => "breech",
+      :helptext => "Breech Position Type",
+      :field_type => "text",
+      :condition => "$('position').value.trim().toUpperCase() == 'BREECH';"
+    }) %>
+  <% @breech = ["", "Left Sacro Anterior",
+    "Left Sacro Transverse",
+    "Left Sacro Posterior",
+    "Right Sacro Anterior",
+    "Right Sacro Transverse",
+    "Right Sacro Posterior"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "BREECH", {:id => 'position_breech_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@breech),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <% options = default.merge({
+      :id => "face",
+      :helptext => "Face Position Type",
+      :field_type => "text",
+      :condition => "$('position').value.trim().toUpperCase() == 'FACE';"
+    }) %>
+  <% @face = ["", "Left Mento Anterior",
+    "Left Mento Transverse",
+    "Left Mento Posterior",
+    "Right Mento Anterior",
+    "Right Mento Transverse",
+    "Right Mento Posterior"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "FACE", {:id => 'position_face_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@face),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <% options = default.merge({
+      :id => "shoulder",
+      :helptext => "Shoulder Position Type",
+      :field_type => "text",
+      :condition => "$('position').value.trim().toUpperCase() == 'SHOULDER';"
+    }) %>
+  <% @shoulder = ["", "Left Acromion Dorsal Anterior",
+    "Left Acromion Dorsal Posterior",
+    "Right Acromion Dorsal Anterior",
+    "Right Acromion Dorsal Posterior"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "SHOULDER", {:id => 'position_shoulder_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@shoulder),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+<%#--------------------------------------------------------%>
+
+
+  <% options = default.merge({
+      :id => "contractions",
+      :helptext => "Contractions",
+      :field_type => "text"
+    }) %>
+  <% @contractions = ["", "Yes", "No"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "CONTRACTIONS", {:id => 'contractions_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@contractions),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <% options = default.merge({
+      :id => "contractions_intensity",
+      :helptext => "Contractions Intensity",
+      :field_type => "text",
+      :condition => "$('contractions').value.trim().toUpperCase() == 'YES';"
+    }) %>
+  <% @contractions_intensity = ["", "Mild", "Moderate", "Strong"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "CONTRACTIONS INTENSITY", {:id => 'contractions_intensity_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@contractions_intensity),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "contractions_level",
+      :helptext => "Contractions Frequency",
+      :field_type => "number",
+      :tt_pageStyleClass => "NumbersOnly level",
+      :absoluteMax => 5,
+      :absoluteMin => 1,
+      :tt_onLoad => "setTimeout('changeIds()', 100);",
+      :condition => "$('contractions').value.trim().toUpperCase() == 'YES';"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "CONTRACTIONS LEVEL", {:id => 'contractions_level_concept_name'}) %>
+  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <% options = default.merge({
+      :id => "descent",
+      :helptext => "Descent",
+      :field_type => "text"
+    }) %>
+  <% @descent = ["", "5/5", "4/5", "3/5", "2/5", "1/5", "0/5"] %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "DESCENT", {:id => 'descent_concept_name'}) %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@descent),options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+</form>
