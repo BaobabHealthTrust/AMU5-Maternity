@@ -722,5 +722,9 @@ class PatientsController < ApplicationController
 		@diagnosis  = @patient.current_diagnoses["DIAGNOSIS"] rescue []
 
 		render :template => 'encounters/diagnoses_index', :layout => 'menu'
-	end  
+	end
+
+  def maternity_demographics
+    render :layout => 'menu'
+  end
 end
