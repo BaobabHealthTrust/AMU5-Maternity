@@ -727,4 +727,15 @@ class PatientsController < ApplicationController
   def maternity_demographics
     render :layout => 'menu'
   end
+
+  def edit_demographics
+    @patient = Patient.find(params[:patient_id]  || params[:id] || session[:patient_id]) rescue nil
+    @field = params[:field]
+    render :partial => "edit_demographics", :field =>@field, :layout => true and return
+  end
+
+  def update_demographics
+    Person.update_demographics(params)
+    redirect_to :action => 'maternity_demographics', :patient_id => params['person_id'] and return
+  end
 end
