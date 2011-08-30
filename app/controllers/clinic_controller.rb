@@ -23,7 +23,17 @@ class ClinicController < ApplicationController
   def reports
     @location = Location.find(session[:facility]).name rescue ""
 
-    render :template => 'clinic/reports', :layout => false 
+    @settings = [
+      ["AnteNatal Ward","/cohort_tool/?reportType=3"],
+      ["Labour Ward","/cohort_tool/?reportType=2"],
+      ["Post Natal Ward","/cohort_tool/?reportType=4"],
+      ["Gynaecology", "/cohort_tool/?reportType=5"],
+      ["Post Natal Ward (Low Risk)", "/cohort_tool/?reportType=7"],
+      ["Post Natal Ward (High Risk)", "/cohort_tool/?reportType=6"],
+      ["Aggregate Maternity Statistics)", "/cohort_tool/?reportType=1"]
+    ]
+
+    render :layout => false
   end
 
   def supervision
