@@ -397,7 +397,7 @@ class EncountersController < ApplicationController
     #render :layout => "menu" 
     render :template => 'dashboards/treatment_dashboard', :layout => false
   end
- 
+=begin
   def observations_printable
     @patient    = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
     @user = params[:user_id]
@@ -427,7 +427,7 @@ class EncountersController < ApplicationController
 
     render :layout => false
   end
-
+=end
   def print_note
     # raise request.remote_ip.to_yaml
 

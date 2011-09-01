@@ -1,4 +1,8 @@
-# Methods added to this helper will be available to all templates in the application.
+# Methods added to this helper will be available to all templates in the application
+
+require 'barby'
+require 'barby/outputter/rmagick_outputter'
+
 module ApplicationHelper
   def link_to_onmousedown(name, options = {}, html_options = nil, *parameters_for_method_reference)
     html_options = Hash.new if html_options.nil?

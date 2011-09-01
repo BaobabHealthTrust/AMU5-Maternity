@@ -1,3 +1,6 @@
+require 'barby'
+require 'barby/outputter/rmagick_outputter'
+
 class PatientsController < ApplicationController
   before_filter :find_patient, :except => [:void]
   
@@ -524,6 +527,8 @@ class PatientsController < ApplicationController
       @programs = restriction.filter_programs(@programs)
     end
 
+    
+    
     render :template => 'dashboards/visit_history_tab', :layout => false
   end
 
@@ -676,7 +681,7 @@ class PatientsController < ApplicationController
     render :layout => false
   end
 
-  def visit_history
+  def maternity_visit_history
     @super_user = false
     @clinician  = false
     @doctor     = false
@@ -704,9 +709,8 @@ class PatientsController < ApplicationController
     # }.delete_if{|x|
     #  x == ""
     # }
-
     @past_treatments = @patient.visit_treatments rescue nil
-    render :layout => false
+    render :template => '/patients/visit_history', :layout => false
   end
 
 	def observations
@@ -738,4 +742,49 @@ class PatientsController < ApplicationController
     Person.update_demographics(params)
     redirect_to :action => 'maternity_demographics', :patient_id => params['person_id'] and return
   end
+
+  def observations_printable
+    @patient    = Patient.find(params[:patient_id] || session[:patient_id]) rescue nil
+    @user = params[:user_id]
+
+    create_barcode(@patient.national_id)
+
+    @encounters = {}
+
+    @patient.current_visit.encounters.active.find(:all, :conditions => ["encounter_type = ?",
+        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+      e.observations.each{|o|
+        if o.concept.name.name == "DELIVERY MODE"
+          if !@encounters[o.concept.name.name]
+            @encounters[o.concept.name.name] = []
+          end
+
+          @encounters[o.concept.name.name] << o.answer_string
+        elsif o.concept.name.name.include?("TIME")
+          @encounters[o.concept.name.name] = o.value_datetime.strftime("%H:%M")
+        else
+          @encounters[o.concept.name.name] = o.answer_string
+        end
+      }
+    } rescue {}
+
+    # raise @encounters.to_yaml
+
+    render :layout => false
+  end
+
+  def create_barcode(patient_national_id)
+
+    barcode = Barby::Code128B.new(patient_national_id)
+
+    File.open(RAILS_ROOT + '/public/images/patient_id.png', 'w') do |f|
+      f.write barcode.to_png(:height => 100, :xdim => 2)
+    end
+
+  end
+
+  def admissions_dashboard
+    render :template => 'dashboards/admissions_dashboard', :layout => false
+  end
+
 end

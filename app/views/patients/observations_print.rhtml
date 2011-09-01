@@ -18,7 +18,7 @@
     height: 88.5%;
   }
 </style>
-<iframe id="main" src="/encounters/observations_printable/?patient_id=<%= @patient.id %>"></iframe>
+<iframe id="main" src="/patients/observations_printable/?patient_id=<%= @patient.id %>"></iframe>
 <div id="nav">
   <button class="green" onclick="window.location = '/encounters/new/observations?patient_id=<%= @patient.id %>'"
           style="float: right; margin: 10px;">

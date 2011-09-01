@@ -5,16 +5,16 @@
 </style>
 
 <script type="text/javascript">
-  tt_cancel_show = '/patients/show/<%= @patient.id %>';
+  tt_cancel_show = '/patients/admissions_dashboard/<%= @patient.id %>';
 
 <% if @diagnosis.length <= 0 %>
 
-    tt_cancel_destination = '/encounters/new/outpatient_diagnosis/?patient_id=' +
+    tt_cancel_destination = '/patients/admissions_dashboard/?patient_id=' +
           '<%=  "#{@patient.id}#{ (@diagnosis.length <= 0 ? "&next=true" : "") }" %>';
     
 <% else %>
 
-    tt_cancel_destination = "/encounters/new/observations/?patient_id=<%=  @patient.id %>";
+    tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>";
 
     // tt_cancel_destination = '/encounters/new/refer_out/?patient_id=<%=  "#{@patient.id}" %>';
 <%  end %>
