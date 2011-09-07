@@ -736,6 +736,7 @@ class PatientsController < ApplicationController
             procedures << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Procedure done").concept_id
             delivery_mode << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Delivery mode").concept_id
             baby_outcome << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Baby outcome").concept_id
+            diagnoses << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Diagnosis").concept_id
           }
         end
 

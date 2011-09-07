@@ -83,13 +83,13 @@
       %>
         <tr class="data <%= cycle('even', 'odd') %>" style="padding: 8px;">
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
-            <%="&nbsp;"%>
+            <%= @diagnoses[i].uniq.join(", ") rescue "&nbsp;"%>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
             <%= @procedures_done[i].uniq.join(", ") rescue "&nbsp;" %>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " align="center" valign="top">
-            <%=@deliveries[i] rescue "0"%>
+            <%=  @deliveries[i] rescue "0"%>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
             <%= @delivery_modes[i].uniq.join(", ") rescue "&nbsp;" %>
@@ -98,7 +98,7 @@
             <%= @baby_outcomes[i].uniq.join(", ") rescue "&nbsp;" %>
           </td>
           <td style="width:20%;" align="center" valign="top">
-            <%=encounter_date %>
+            <%=  encounter_date %>
           </td>
         </tr>
         <%
