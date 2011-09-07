@@ -704,11 +704,49 @@ class PatientsController < ApplicationController
     @encounters = @patient.current_visit.encounters.find(:all) rescue []
     @encounter_names = @patient.current_visit.encounters.map{|encounter| encounter.name}.uniq rescue []
 
-    @past_diagnoses = @patient.past_history  # @patient.previous_visits_diagnoses.collect{|o|
+    session_date = session[:datetime].to_date rescue Date.today
+
+    @past_diagnoses = Encounter.find(:all,:order => "encounter_datetime DESC",
+		    :conditions => ["patient_id = ?", @patient.id],:include => [:observations])
+
+        #raise @past_diagnoses.to_yaml
+    @encounter_dates = @past_diagnoses.map{|encounter| encounter.encounter_datetime.strftime("%Y-%m-%d")}.uniq rescue []
     # o.diagnosis_string
     # }.delete_if{|x|
     #  x == ""
     # }
+    @deliveries = []
+    @procedures_done = []
+    @delivery_modes = []
+    @baby_outcomes = []
+    @diagnoses = []
+
+    @encounter_dates.each{|enc_date|
+      delivery = 0
+      procedures = []
+      delivery_mode = []
+      diagnoses = []
+      baby_outcome = []
+
+      @past_diagnoses.each{|enc|
+
+        if enc_date == enc.encounter_datetime.strftime("%Y-%m-%d")
+          delivery = delivery + 1 if enc.encounter_type == EncounterType.find_by_name("BABY DELIVERY").id
+          enc.observations.each{|observation|
+            procedures << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Procedure done").concept_id
+            delivery_mode << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Delivery mode").concept_id
+            baby_outcome << ConceptName.find_by_concept_id(observation.value_coded).name if observation.concept_id == ConceptName.find_by_name("Baby outcome").concept_id
+          }
+        end
+
+      }
+      @deliveries << delivery
+      @procedures_done << procedures
+      @delivery_modes << delivery_mode
+      @diagnoses << diagnoses
+      @baby_outcomes << baby_outcome
+    }
+     #raise @past_diagnoses.first[1]["BABY DELIVERY"].to_yaml
     @past_treatments = @patient.visit_treatments rescue nil
     render :template => '/patients/visit_history', :layout => false
   end

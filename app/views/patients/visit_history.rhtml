@@ -49,7 +49,7 @@
       </tr>
     </table>
   </div-->
-  <div style="width: 680px; overflow: -moz-scrollbars-vertical; height: 315px;">
+  <div style="width: 100%; overflow: -moz-scrollbars-vertical; height: 315px;">
     <table class="list" style="width: 98%; left: 8px; right: -66px;
            position: relative; margin-top: 8px; font-size: 0.7em; border: 1px solid #000;"
            cellpadding="5" cellspacing="1">
@@ -68,7 +68,7 @@
           Mode of Delivery
         </th>
         <th style="width:20%; border-right: 1px solid #fff;">
-          Outcome
+          Baby Outcome
         </th>
         <th style="width:20%;">
           Date
@@ -78,27 +78,27 @@
       # raise @past_diagnoses.to_yaml
 
       i = 0
-      @past_diagnoses.each{|entry|
+      @encounter_dates.each{|encounter_date|
 
       %>
         <tr class="data <%= cycle('even', 'odd') %>" style="padding: 8px;">
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
-            <%= entry[1]["DIAGNOSIS"]["DIAGNOSIS"].collect{|e| e}.delete_if{|x| x.empty?}.uniq.join(", ").titleize rescue "&nbsp;" %>
+            <%="&nbsp;"%>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
-            <%= entry[1]["UPDATE OUTCOME"]["PROCEDURE DONE"].collect{|e| e}.delete_if{|x| x.empty?}.uniq.join(", ").titleize rescue "&nbsp;" %>
+            <%= @procedures_done[i].uniq.join(", ") rescue "&nbsp;" %>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " align="center" valign="top">
-            <%= entry[1]["UPDATE OUTCOME"]["NUMBER OF BABIES"].collect{|e| e}.delete_if{|x| x.empty?}.uniq.join(", ").titleize rescue "0" %>
+            <%=@deliveries[i] rescue "0"%>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
-            <%= entry[1]["UPDATE OUTCOME"]["DELIVERY MODE"].collect{|e| e}.delete_if{|x| x.empty?}.uniq.join(", ").titleize rescue "&nbsp;" %>
+            <%= @delivery_modes[i].uniq.join(", ") rescue "&nbsp;" %>
           </td>
           <td style="width:20%; border-right: 1px solid <%= (i % 2 == 0 ? '#fff' : '#eee') %> " valign="top">
-            <%= entry[1]["UPDATE OUTCOME"]["BABY OUTCOME"].collect{|e| e}.delete_if{|x| x.empty?}.uniq.join(", ").titleize rescue "&nbsp;" %>
+            <%= @baby_outcomes[i].uniq.join(", ") rescue "&nbsp;" %>
           </td>
           <td style="width:20%;" align="center" valign="top">
-            <%= entry[0] %>
+            <%=encounter_date %>
           </td>
         </tr>
         <%
