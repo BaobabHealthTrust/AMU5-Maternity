@@ -768,7 +768,25 @@ class PatientsController < ApplicationController
 	end
 
   def maternity_demographics
-    render :layout => 'menu'
+    @patient = Patient.find(params[:patient_id]  || params[:id] || session[:patient_id]) rescue nil
+    @national_id = @patient.national_id_with_dashes rescue nil 
+    
+    @first_name = @patient.person.names.first.given_name rescue nil
+    @last_name = @patient.person.names.first.family_name rescue nil
+    @birthdate = @patient.person.birthdate_formatted rescue nil
+    @gender = @patient.person.gender rescue ''
+
+    @current_village = @patient.person.addresses.first.city_village rescue ''
+    @current_ta = @patient.person.addresses.first.county_district rescue ''
+    @current_district = @patient.person.addresses.first.state_province rescue ''
+    @home_district = @patient.person.addresses.first.address2 rescue ''
+
+    @primary_phone = @patient.person.phone_numbers["Cell phone number"] rescue ''
+    @secondary_phone = @patient.person.phone_numbers["Home phone number"] rescue ''
+
+	@occupation = PersonAttribute.find(:first,:conditions => ["voided = 0 AND person_attribute_type_id = ? AND person_id = ?", PersonAttributeType.find_by_name('Occupation').id, @patient.id]).value rescue 'Uknown'
+     
+ 	    render :layout => 'menu'
   end
 
   def edit_demographics
@@ -789,27 +807,41 @@ class PatientsController < ApplicationController
     create_barcode(@patient.national_id)
 
     @encounters = {}
+    @outpatient_diagnosis = {}
 
-    @patient.current_visit.encounters.active.find(:all, :conditions => ["encounter_type = ?",
-        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+    @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
+        EncounterType.find_by_name("OUTPATIENT DIAGNOSIS").encounter_type_id]).each{|e|
       e.observations.each{|o|
-        if o.concept.name.name == "DELIVERY MODE"
-          if !@encounters[o.concept.name.name]
-            @encounters[o.concept.name.name] = []
+        if o.formated_concept_name == "DIAGNOSIS"
+          if !@outpatient_diagnosis[o.formated_concept_name]
+            @outpatient_diagnosis[o.formated_concept_name] = []
           end
-
-          @encounters[o.concept.name.name] << o.answer_string
-        elsif o.concept.name.name.include?("TIME")
-          @encounters[o.concept.name.name] = o.value_datetime.strftime("%H:%M")
-        else
-          @encounters[o.concept.name.name] = o.answer_string
+          @outpatient_diagnosis[o.formated_concept_name] << o.answer_string
         end
       }
     } rescue {}
 
-    # raise @encounters.to_yaml
+    @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
+        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+      e.observations.each{|o|
+        if o.formated_concept_name == "DELIVERY MODE"
+          if !@encounters[o.formated_concept_name]
+            @encounters[o.formated_concept_name] = []
+          end
+          @encounters[o.formated_concept_name] << o.answer_string
+        elsif o.formated_concept_name.include?("TIME")
+          @encounters[o.formated_concept_name] = o.value_datetime.strftime("%H:%M")
+        else
+          @encounters[o.formated_concept_name] = o.answer_string
+        end
+      }
+    } rescue {}
 
     render :layout => false
+  end
+
+  def observations_print
+    @printed = params[:printed]
   end
 
   def create_barcode(patient_national_id)
