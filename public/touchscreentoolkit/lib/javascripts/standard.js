@@ -3316,12 +3316,33 @@ TimeSelector.prototype = {
 
 
     incrementHour: function() {
-        if(this.currentHour.value >= (new Date().getHours())){
 
-        } else if(this.currentHour.value == 23){
-            this.currentHour.value = 0;
+        var maxHour
+        var maxMinute
+
+        try{
+            maxHour = tstInputTarget.getAttribute("maxTime").split(':')[0] || new Date().getHours();
+        }
+        catch(err){
+            maxHour = new Date().getHours();
+        }
+
+        try{
+            maxMinute = tstInputTarget.getAttribute("maxTime").split(':')[1] || new Date().getMinutes();
+        }
+        catch(err){
+            maxMinute = new Date().getMinutes();
+        }
+
+        if(parseInt(this.currentHour.value) >= parseInt(maxHour)){
+            if(this.currentHour.value == 23){
+                this.currentHour.value = 0;
+            }
         } else {
             this.currentHour.value++;
+            if(parseInt(this.currentHour.value) == parseInt(maxHour) ){
+                this.currentMinute.value = maxMinute;
+            }
         }
 
         this.time[0] = this.currentHour.value;
@@ -3340,7 +3361,26 @@ TimeSelector.prototype = {
     },
 
     incrementMinute: function() {
-        if(this.currentMinute.value == 59){
+
+        var maxHour
+        var maxMinute
+
+        try{
+            maxHour = tstInputTarget.getAttribute("maxTime").split(':')[0] || new Date().getHours();
+        }catch(err){
+            maxHour = new Date().getHours();
+        }
+
+        try{
+            maxMinute = tstInputTarget.getAttribute("maxTime").split(':')[1] || new Date().getMinutes();
+        }catch(err){
+            maxMinute = new Date().getMinutes();
+        }
+
+
+        if ((this.currentHour.value == maxHour) && (this.currentMinute.value == maxMinute)){
+
+        }else if(this.currentMinute.value == 59){
             this.currentMinute.value = 0;
             //} else if(this.currentMinute.value >= (new Date().getMinutes())){
             //  this.currentMinute.value++;
