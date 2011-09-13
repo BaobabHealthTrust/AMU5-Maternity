@@ -184,7 +184,7 @@
       </tr>
       <tr>
         <td colspan="4">
-          <b>Admitted Due To:</b> <%= @encounters["ADMISSION DIAGNOSIS"] %>
+          <b>Admitted Due To:</b> <%= @outpatient_diagnosis["DIAGNOSIS"] %>
         </td>
       </tr>
       <tr>
@@ -205,7 +205,7 @@
       </tr>
       <tr>
         <td>
-          <b>Fundus:</b> <%= @encounters["FUNDUS IN CM"] %> cm
+          <b>Fundus:</b> <%= @encounters["FUNDUS"] %> Weeks
         </td>
         <td>
           <b>Lie:</b> <%= @encounters["LIE"].titleize rescue "" %>
@@ -242,7 +242,11 @@
           <b>Cervical Dilation:</b> <%= @encounters["CERVICAL DILATION"].titleize rescue "" %>
         </td>
         <td>
-          <b>Caput/Moulding:</b> <%= @encounters["CAPUT OR MOULDING"].titleize rescue "" %>
+          <% if !@encounters["MOULDING"].blank? %>
+            <b>Caput/Moulding:</b> <%= @encounters["MOULDING"].titleize rescue "" %>
+          <% else %>
+            <b>Caput/Moulding:</b> <%= @encounters["CAPUT"].titleize rescue "" %>
+          <% end %>
         </td>
       </tr>
       <tr>

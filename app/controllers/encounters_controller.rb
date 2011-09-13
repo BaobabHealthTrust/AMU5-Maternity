@@ -428,6 +428,7 @@ class EncountersController < ApplicationController
     render :layout => false
   end
 =end
+
   def print_note
     # raise request.remote_ip.to_yaml
 
@@ -445,7 +446,7 @@ class EncountersController < ApplicationController
 
       t1 = Thread.new{
         Kernel.system "htmldoc --webpage -f /tmp/output-" + session[:user_id].to_s + ".pdf http://" +
-          request.env["HTTP_HOST"] + "\"/encounters/observations_printable?patient_id=" +
+          request.env["HTTP_HOST"] + "\"/patients/observations_printable?patient_id=" +
           @patient.id.to_s + "&user_id=" + @user + "\"\n"
       }
 
@@ -462,7 +463,7 @@ class EncountersController < ApplicationController
 
     end
 
-    redirect_to "/encounters/new/observations_print?patient_id=#{@patient.id}" and return
+    redirect_to "/patients/observations_print?patient_id=#{@patient.id}&printed=true" and return
   end
 
  

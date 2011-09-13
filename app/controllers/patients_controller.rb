@@ -807,27 +807,41 @@ class PatientsController < ApplicationController
     create_barcode(@patient.national_id)
 
     @encounters = {}
+    @outpatient_diagnosis = {}
 
-    @patient.current_visit.encounters.active.find(:all, :conditions => ["encounter_type = ?",
-        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+    @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
+        EncounterType.find_by_name("OUTPATIENT DIAGNOSIS").encounter_type_id]).each{|e|
       e.observations.each{|o|
-        if o.concept.name.name == "DELIVERY MODE"
-          if !@encounters[o.concept.name.name]
-            @encounters[o.concept.name.name] = []
+        if o.formated_concept_name == "DIAGNOSIS"
+          if !@outpatient_diagnosis[o.formated_concept_name]
+            @outpatient_diagnosis[o.formated_concept_name] = []
           end
-
-          @encounters[o.concept.name.name] << o.answer_string
-        elsif o.concept.name.name.include?("TIME")
-          @encounters[o.concept.name.name] = o.value_datetime.strftime("%H:%M")
-        else
-          @encounters[o.concept.name.name] = o.answer_string
+          @outpatient_diagnosis[o.formated_concept_name] << o.answer_string
         end
       }
     } rescue {}
 
-    # raise @encounters.to_yaml
+    @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
+        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+      e.observations.each{|o|
+        if o.formated_concept_name == "DELIVERY MODE"
+          if !@encounters[o.formated_concept_name]
+            @encounters[o.formated_concept_name] = []
+          end
+          @encounters[o.formated_concept_name] << o.answer_string
+        elsif o.formated_concept_name.include?("TIME")
+          @encounters[o.formated_concept_name] = o.value_datetime.strftime("%H:%M")
+        else
+          @encounters[o.formated_concept_name] = o.answer_string
+        end
+      }
+    } rescue {}
 
     render :layout => false
+  end
+
+  def observations_print
+    @printed = params[:printed]
   end
 
   def create_barcode(patient_national_id)
