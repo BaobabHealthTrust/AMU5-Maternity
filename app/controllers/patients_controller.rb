@@ -729,7 +729,25 @@ class PatientsController < ApplicationController
 	end
 
   def maternity_demographics
-    render :layout => 'menu'
+    @patient = Patient.find(params[:patient_id]  || params[:id] || session[:patient_id]) rescue nil
+    @national_id = @patient.national_id_with_dashes rescue nil 
+    
+    @first_name = @patient.person.names.first.given_name rescue nil
+    @last_name = @patient.person.names.first.family_name rescue nil
+    @birthdate = @patient.person.birthdate_formatted rescue nil
+    @gender = @patient.person.gender rescue ''
+
+    @current_village = @patient.person.addresses.first.city_village rescue ''
+    @current_ta = @patient.person.addresses.first.county_district rescue ''
+    @current_district = @patient.person.addresses.first.state_province rescue ''
+    @home_district = @patient.person.addresses.first.address2 rescue ''
+
+    @primary_phone = @patient.person.phone_numbers["Cell phone number"] rescue ''
+    @secondary_phone = @patient.person.phone_numbers["Home phone number"] rescue ''
+
+	@occupation = PersonAttribute.find(:first,:conditions => ["voided = 0 AND person_attribute_type_id = ? AND person_id = ?", PersonAttributeType.find_by_name('Occupation').id, @patient.id]).value rescue 'Uknown'
+     
+ 	    render :layout => 'menu'
   end
 
   def edit_demographics
