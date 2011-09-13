@@ -203,6 +203,7 @@
       :condition => "$('membranes').value.toLowerCase() == 'ruptured'",
       :helptext => "Membranes Rupture Time",
       :field_type => "time",
+      :maxTime => '',
       :tt_onUnLoad => "$('rupture_time_value_datetime').value = " +
         "$('rupture_date').value.trim() + ' ' + $('rupture_time').value.trim();"
     }) %>
