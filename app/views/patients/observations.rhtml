@@ -62,8 +62,8 @@
           </button>
         </div>
         <div style="display: table-cell">
-          <button class="<%= (@encounters.include?("STATION") ? "gray" : "blue") %>"
-                  onclick="<%= (@encounters.include?("STATION") ? "" :
+          <button class="<%= (@encounters.include?("CERVICAL DILATION") ? "gray" : "blue") %>"
+                  onclick="<%= (@encounters.include?("CERVICAL DILATION") ? "" :
                       "window.parent.location = '/encounters/new/observations_vaginal_exam?patient_id=#{@patient.id}'") %> ">
             <span>Vaginal Examination</span>
           </button>

@@ -160,7 +160,7 @@ class EncountersController < ApplicationController
       # Create or update
       type = identifier[:identifier_type].to_i rescue nil
       unless (arv_number_identifier_type != type) and @patient_identifier
-        arv_number = identifier[:identifier].strip
+        arv_number = identifier[:identifier].strip rescue nil
         if arv_number.match(/(.*)[A-Z]/i).blank?
           identifier[:identifier] = "#{PatientIdentifier.site_prefix} #{arv_number}"
         end

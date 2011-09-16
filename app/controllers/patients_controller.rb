@@ -753,11 +753,11 @@ class PatientsController < ApplicationController
   end
 
 	def observations
-		@encounters = @patient.current_visit.encounters.active.find(:all, :conditions => ["encounter_type = ? OR encounter_type = ?",
+		@encounters = @patient.encounters.current.find(:all, :conditions => ["encounter_type = ? OR encounter_type = ?",
 		    EncounterType.find_by_name("OBSERVATIONS").encounter_type_id,
-		    EncounterType.find_by_name("DIAGNOSIS").encounter_type_id]).collect{|e|        
-		  e.observations.collect{|o| o.concept.name.name.upcase}
-		}.join(", ") rescue ""
+		    EncounterType.find_by_name("OUTPATIENT DIAGNOSIS").encounter_type_id]).collect{|e|
+		  e.observations.collect{|o| o.formated_concept_name}
+		}.join(", ") rescue nil
 	end
 
 	def diagnoses_index
@@ -808,6 +808,7 @@ class PatientsController < ApplicationController
 
     @encounters = {}
     @outpatient_diagnosis = {}
+
 
     @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
         EncounterType.find_by_name("OUTPATIENT DIAGNOSIS").encounter_type_id]).each{|e|

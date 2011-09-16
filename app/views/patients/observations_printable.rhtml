@@ -153,7 +153,7 @@
 
             <b>From:</b> <%= @encounters["REFERRAL CLINIC IF REFERRED"].titleize rescue "" %>&nbsp;&nbsp;&nbsp;
 
-            <b>Reason:</b> <%= @encounters["REASON FOR REFERRAL TO ANOTHER SITE"].titleize rescue "" %>
+            <b>Reason:</b> <%= @outpatient_diagnosis["DIAGNOSIS"].to_s rescue "" %>
 
           <% else %>
             &nbsp;
