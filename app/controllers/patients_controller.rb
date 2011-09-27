@@ -809,7 +809,6 @@ class PatientsController < ApplicationController
     @encounters = {}
     @outpatient_diagnosis = {}
 
-
     @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
         EncounterType.find_by_name("OUTPATIENT DIAGNOSIS").encounter_type_id]).each{|e|
       e.observations.each{|o|
@@ -822,8 +821,7 @@ class PatientsController < ApplicationController
       }
     } rescue {}
 
-    @patient.encounters.current.find(:all, :conditions => ["encounter_type = ?",
-        EncounterType.find_by_name("OBSERVATIONS").encounter_type_id]).each{|e|
+    @patient.encounters.current.find(:all).each{|e|
       e.observations.each{|o|
         if o.formated_concept_name == "DELIVERY MODE"
           if !@encounters[o.formated_concept_name]
