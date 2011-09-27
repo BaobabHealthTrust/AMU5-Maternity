@@ -73,8 +73,8 @@
       <div style="display: table-cell">
           <button class="<%= (@encounters.include?("FUNDUS") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("FUNDUS") ? "" :
-                      "window.parent.location = '/encounters/new/maternity_visit?patient_id=#{@patient.id}'") %> ">
-            <span>Maternity Visit</span>
+                      "window.parent.location = '/encounters/new/maternity_examination?patient_id=#{@patient.id}'") %> ">
+            <span>Maternity Examination</span>
           </button>
        </div>
         
