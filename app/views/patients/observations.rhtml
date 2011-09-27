@@ -33,22 +33,22 @@
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("HIV STATUS") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("HIV STATUS") ? "" :
-                      "window.parent.location = '/encounters/new/observations_pmtct?patient_id=#{@patient.id}'") %> ">
-            <span>PMTCT</span>
+                      "window.parent.location = '/encounters/new/update_hiv_status?patient_id=#{@patient.id}'") %> ">
+            <span>Update HIV status</span>
           </button>
         </div>
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("ADMISSION DATE") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("ADMISSION DATE") ? "" :
-                      "window.parent.location = '/encounters/new/observations_admission?patient_id=#{@patient.id}'") %> ">
+                      "window.parent.location = '/encounters/new/patient_admission?patient_id=#{@patient.id}'") %> ">
             <span>Admission Details</span>
           </button>
         </div>
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("LAST MENSTRUAL PERIOD") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("LAST MENSTRUAL PERIOD") ? "" :
-                      "window.parent.location = '/encounters/new/observations_patient_history?patient_id=#{@patient.id}'") %> ">
-            <span>Patient History</span>
+                      "window.parent.location = '/encounters/new/medical_history?patient_id=#{@patient.id}'") %> ">
+            <span>Medical History</span>
           </button>
         </div>
       </div>
@@ -61,6 +61,7 @@
             <span>Vitals</span>
           </button>
         </div>
+<!--        
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("CERVICAL DILATION") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("CERVICAL DILATION") ? "" :
@@ -68,15 +69,23 @@
             <span>Vaginal Examination</span>
           </button>
         </div>
-        <div style="display: table-cell">
+-->
+      <div style="display: table-cell">
           <button class="<%= (@encounters.include?("FUNDUS") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("FUNDUS") ? "" :
-                      "window.parent.location = '/encounters/new/observations_physical_exam?patient_id=#{@patient.id}'") %> ">
-            <span>Physical Examination</span>
+                      "window.parent.location = '/encounters/new/maternity_visit?patient_id=#{@patient.id}'") %> ">
+            <span>Maternity Visit</span>
+          </button>
+       </div>
+        
+      <div style="display: table-cell">
+          <button class="blue"
+                  onclick="window.parent.location = '/patients/observations_print?patient_id=<%= @patient.id %>'">
+            <span>Admission Notes Printing</span>
           </button>
         </div>
       </div>
-
+<!--
       <div style="display: table-row">
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("PLAN") || @encounters.include?("IMPRESSION") ? "gray" : "blue") %>"
@@ -85,19 +94,23 @@
             <span>Notes</span>
           </button>
         </div>
+ 
         <div style="display: table-cell">
           <button class="<%= (@encounters.include?("DIAGNOSIS") ? "gray" : "blue") %>"
                   onclick="<%= (@encounters.include?("DIAGNOSIS") ? "" :
                       "window.parent.location = '/patients/diagnoses_index?patient_id=#{@patient.id}';") %> ">
             <span>Admission Diagnosis</span>
           </button>
+     
         </div>
+
         <div style="display: table-cell">
           <button class="blue"
                   onclick="window.parent.location = '/patients/observations_print?patient_id=<%= @patient.id %>'">
             <span>Admission Notes Printing</span>
           </button>
         </div>
+-->        
       </div>
     </div>
   </center>

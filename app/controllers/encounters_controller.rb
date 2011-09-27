@@ -273,6 +273,18 @@ class EncountersController < ApplicationController
 	end
   end
 
+  def maternity_diagnosis
+    search_string         = (params[:search_string] || '').upcase
+
+    @diagnosis_concepts = []
+
+    Concept.find(:all, :joins => :concept_sets, :conditions => ['concept_set = ?', Concept.find_by_name("MATERNITY DIAGNOSIS LIST").concept_id]).map{|diagnosis| @diagnosis_concepts << ConceptName.find_by_concept_id(diagnosis.concept_id).name}
+
+    @results = @diagnosis_concepts.collect{|e| e}.delete_if{|x| !x.match(/^#{search_string}/)}
+
+    render :text => "<li>" + @results.sort.join("</li><li>") + "</li>"
+  end
+
   def diagnoses
     search_string = (params[:search_string] || '').upcase
     filter_list = params[:filter_list].split(/, */) rescue []

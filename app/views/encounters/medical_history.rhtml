@@ -1,7 +1,5 @@
 <script>
-  tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
-  tt_cancel_show = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
-
+  var tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=@patient.patient_id %>"
   var timedEvent;
 
   function setDate(elementId){
@@ -40,6 +38,7 @@
 
   function calculateEDOD(){
     var edod = "";
+    var gestation = "";
     var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
     if(!$('expected_date_of_delivery')){
@@ -50,17 +49,29 @@
       $("inputFrame" + tstCurrentPage).appendChild(div);
     }
 
-    if($("touchscreenInput" + tstCurrentPage).value.trim().length > 0){
+    if($("touchscreenInput" + tstCurrentPage).value.trim().length > 0 && 
+      $("touchscreenInput" + tstCurrentPage).value.trim() != "Unknown"){
+
       var theDate = new Date($("touchscreenInput" + tstCurrentPage).value.trim());
 
       theDate.setDate(theDate.getDate() + 7);
 
+      var today = new Date();
+
+      var s = today - theDate;
+
+      gestation = String(Math.floor(s / (24 * 60 * 60 * 7 * 1000)));
+
       theDate.setMonth(theDate.getMonth() + 9);
 
       edod = (theDate.getDate() + "-" + month[theDate.getMonth()] + "-" + theDate.getFullYear());
+      
     }
 
-    $("expected_date_of_delivery").innerHTML = "Expected Date Of Delivery: <i style='font-size: 1.2em; float: right;'>" + edod + "</i>";
+    $("expected_date_of_delivery").innerHTML = "Expected Date Of Delivery: <i style='font-size: 1.2em; float: right;'>" + 
+          edod + "</i><br /><br />Gestation Weeks: " + (gestation < 32 &&
+          gestation.trim().length > 0 ? "<i style='color: red'>(Premature)</i>" : "") +
+          "<i style='font-size: 1.2em; float: right; width: 100px;'>" + gestation + "</i>";
     
     timedEvent = setTimeout('calculateEDOD()', 500);
   }
@@ -108,107 +119,120 @@
 </style>
 <style>
   #num {display: none;}
-  #Unknown {display: none;}
 </style>
-<form id='medical_history' action="/encounters/create" method='post'>
+<form id='observations_patient_history' action="/encounters/create" method='post'>
   <% default={
     :allowFreeText => 'true',
   } %>
 
   <%= hidden_field_tag "next_url", "/encounters/new/observations/?patient_id=#{@patient.id}" %>
 
-  <%= hidden_field_tag "encounter[encounter_type_name]", "VITALS" %>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "MEDICAL HISTORY" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 
   <% options = default.merge({
-      :id => "systolic_blood_pressure",
-      :helptext => "Systolic Blood Pressure",
+      :id => "gravida_value",
+      :helptext => "Enter Gravida",
       :field_type => "number",
-      :tt_pageStyleClass => "NumbersWithUnknown",
-      :tt_onLoad => "timedEvent = setTimeout('calculateBP(1)', 100);",
-      :tt_onUnLoad => "clearTimeout(timedEvent);",
-      :absoluteMin => 0,
-      :max => 250
-    }) %>
-
-  <%= hidden_field_tag("observations[][concept_name]",  "SYSTOLIC BLOOD PRESSURE", {:id => 'systolic_blood_pressure_concept_name'}) %>
-  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-
-  <% options = default.merge({
-      :id => "diastolic_blood_pressure",
-      :helptext => "Diastolic Blood Pressure",
-      :field_type => "number",
-      :tt_pageStyleClass => "NumbersWithUnknown",
-      :tt_onLoad => "timedEvent = setTimeout('calculateBP(2)', 100);",
-      :tt_onUnLoad => "clearTimeout(timedEvent);",
-      :absoluteMin => 0,
-      :max => 180
-    }) %>
-
-  <%= hidden_field_tag("observations[][concept_name]",  "DIASTOLIC BLOOD PRESSURE", {:id => 'diastolic_blood_pressure_concept_name'}) %>
-  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-
-  <% options = default.merge({
-      :id => "pulse",
-      :helptext => "Pulse",
-      :field_type => "number",
-      :tt_pageStyleClass => "NumbersWithUnknown",
-      :absoluteMin => 0,
-      :max => 150
-    }) %>
-
-  <%= hidden_field_tag("observations[][concept_name]",  "PULSE", {:id => 'pulse_concept_name'}) %>
-  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-
-  <% options = default.merge({
-      :id => "respiration",
-      :helptext => "Respiration Rate",
-      :field_type => "number",
-      :tt_pageStyleClass => "NumbersWithUnknown",
-      :absoluteMin => 0,
-      :max => 50
-    }) %>
-
-  <%= hidden_field_tag("observations[][concept_name]",  "RESPIRATION RATE", {:id => 'respiration_concept_name'}) %>
-  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-
-    <label for="temperature">Temperature (C)</label>
-        <%= text_field_tag "observations[][value_numeric]", nil,
-          {:id => "temperature",
-           :field_type => 'number',
-           :helptext =>"Temperature",
-           :allowFreeText => 'true',
-           :min => 20,
-           :max => 45,
-           :units => 'Celcuis',  
-           :validationRule => "([0-9]+\\.[0-9])|Unknown$",
-           :validationMessage => "You must enter a decimal between 0 and 9 (for example: 36<b>.6</b>)",
-           :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"} %>
-        <%= hidden_field_tag("observations[][concept_name]", "TEMPERATURE (C)") %>
-        <%= hidden_field_tag("observations[][patient_id]", @patient.id) %>
-        <%= hidden_field_tag("observations[][obs_datetime]", DateTime.now()) %>
-
-  <% options = default.merge({
-      :id => "fhr",
-      :helptext => "Fetal Heart Rate",
-      :field_type => "number",
+      :absoluteMin => "1",
+      :max => "15",
+      :flag => '{"message":"Patient at risk of PPH.<br/> Ensure family planing is discussed.","condition":"^([5-9]|[1][0-9])"}',
       :tt_pageStyleClass => "NumbersOnly",
-      :absoluteMin => 0,
-      :max => 200
+      :tt_onUnload => "$('parity_value').setAttribute('absoluteMax', $('gravida_value').value)"
     }) %>
 
-  <%= hidden_field_tag("observations[][concept_name]",  "FETAL HEART RATE", {:id => 'fhr_concept_name'}) %>
-  <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
+  <%= hidden_field_tag("observations[][concept_name]",  "GRAVIDA", {:id => 'gravida_concept_name'}) %>
+  <%= text_field_tag("observations[][value_numeric]",   nil, options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "parity_value",
+      :helptext => "Enter Parity",
+      :field_type => "number",
+      :absoluteMin => "0",
+      :max => "15",
+      :tt_pageStyleClass => "NumbersOnly"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "PARITY", {:id => 'parity_concept_name'}) %>
+  <%= text_field_tag("observations[][value_numeric]",   nil, options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% (1..8).each{|e| %>
+
+    <%
+    indice = ""
+    case e
+    when 1
+      indice = "<sup>st</sup>"
+    when 2
+      indice = "<sup>nd</sup>"
+    when 3
+      indice = "<sup>rd</sup>"
+    else
+      indice = "<sup>th</sup>"
+    end
+
+    @delivery_modes = ["", "Spontaneous vaginal delivery", "Caesarean Section"]
+  %>
+
+    <% options = default.merge({
+        :id => "delivery_mode#{e}",
+        :helptext => "Delivery Mode #{e}#{indice} Pregnancy",
+        :field_type => "text",
+        :condition => "parseInt($('parity_value').value.trim()) >= #{e};"
+      }) %>
+
+    <%= hidden_field_tag("observations[][concept_name]",  "DELIVERY MODE", {:id => 'delivery_mode#{e}_concept_name'}) %>
+    <%= select_tag("observations[][value_coded_or_text]", options_for_select(@delivery_modes),options) %>
+    <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+    <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% } %>
+
+  <% options = default.merge({
+      :id => "no_of_abortions",
+      :helptext => "Number of abortions",
+      :field_type => "number",
+      :absoluteMin => "0",
+      :max => "5",
+      :tt_pageStyleClass => "NumbersOnly"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "Number of Abortions", {:id => 'no_of_abortions_concept_name'}) %>
+  <%= text_field_tag("observations[][value_numeric]",   nil, options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "tt_status_value",
+      :helptext => "Enter TT status",
+      :field_type => "number",
+      :absoluteMin => "0",
+      :max => "5",
+      :flag => '{"condition":"^1$|^0$","message":"TT is inadequate"}',
+      :tt_pageStyleClass => "NumbersOnly"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "TT STATUS", {:id => 'tt_status_concept_name'}) %>
+  <%= text_field_tag("observations[][value_numeric]",   nil, options) %>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+  <% options = default.merge({
+      :id => "last_menstrual_period_date",
+      :helptext => "Last Menstrual Period Date",
+      :field_type => "date",
+      :tt_onLoad => "timedEvent = setTimeout('calculateEDOD()', 100);",
+      :tt_onUnLoad => "clearTimeout(timedEvent);"
+    }) %>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "LAST MENSTRUAL PERIOD", {:id => 'last_menstrual_period_date_concept_name'}) %>
+  <%= text_field_tag("observations[][value_datetime]",   nil, options) %>
   <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
   <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
 
