@@ -1,0 +1,53 @@
+<script>
+  var tt_cancel_destination = "/patients/show/<%= @patient.id%>?auto_load_forms=false"
+
+  function checkEDD(){
+    var edd = "<%= (@lmp.to_date + 7.days + 9.months).strftime("%Y-%m-%d") rescue "" %>";
+  
+  }
+
+</script>
+<style>
+  #space { display:inline; font-size:1.2em; }
+  #Unknown {display: none;}
+  #num {display: none;}
+</style>
+<form id='admit_patient' action="/encounters/create" method='post'>
+
+  <% @admission_section = ["", "ANTENATAL WARD", "LABOUR WARD", "GYNECOLOGY", "HDU"] %>
+
+  <% if @facility.upcase.eql?("KAMUZU CENTRAL HOSPITAL")
+    @admission_section << "POSTNATAL WARD"
+  else
+    @admission_section << "POSTNATAL WARD - HIGH RISK"
+    @admission_section << "POSTNATAL WARD - LOW RISK"
+  end %>
+
+  <%= hidden_field_tag "encounter[encounter_type_name]", "ADMIT PATIENT" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+
+  <% options = {
+    :id => "admission_section",
+    :field_type => 'text',
+    :helptext =>"Select admission section"
+  }%>
+
+  <%= hidden_field_tag("observations[][concept_name]",  "ADMISSION SECTION") %>
+  <%= select_tag("observations[][value_coded_or_text]", options_for_select(@admission_section), options)%>
+  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
+  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+
+
+  <%= hidden_field_tag("programs[][patient_program_id]", @maternity_program_id) %>
+  <%= hidden_field_tag("programs[][program_id]", Program.find_by_name('MATERNITY PROGRAM').id) %>
+  <%= hidden_field_tag("programs[][location_id]", Location.current_health_center.id) %>
+  <%= hidden_field_tag("programs[][date_enrolled]", session[:datetime] ) %>
+  <%= hidden_field_tag("programs[][states][][state]", "Admitted") %>
+
+  <%= hidden_field_tag "next_url", "/encounters/new/refer_out/?patient_id=#{@patient.id}", {:disabled => true} %>
+
+  <%= submit_tag "Finish" %>
+
+</form>

@@ -321,14 +321,17 @@ class Person < ActiveRecord::Base
 
     person = Person.create(person_params)
 
-    if birthday_params["birth_year"] == "Unknown"
-      person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
-    else
-      person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+    unless birthday_params.empty?
+      if birthday_params["birth_year"] == "Unknown"
+        person.set_birthdate_by_age(birthday_params["age_estimate"],self.session_datetime || Date.today)
+      else
+        person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
+      end
     end
     person.save
+   
     person.names.create(names_params)
-    person.addresses.create(address_params)
+    person.addresses.create(address_params) unless address_params.empty? rescue nil
 
     person.person_attributes.create(
       :person_attribute_type_id => PersonAttributeType.find_by_name("Occupation").person_attribute_type_id,
@@ -356,7 +359,7 @@ class Person < ActiveRecord::Base
       patient = person.create_patient
 
       patient_params["identifiers"].each{|identifier_type_name, identifier|
-
+        next if identifier.blank?
         identifier_type = PatientIdentifierType.find_by_name(identifier_type_name) || PatientIdentifierType.find_by_name("Unknown id")
         patient.patient_identifiers.create("identifier" => identifier, "identifier_type" => identifier_type.patient_identifier_type_id)
       } if patient_params["identifiers"]
@@ -374,7 +377,14 @@ class Person < ActiveRecord::Base
   end
 
   def self.find_remote(known_demographics)
-    servers = GlobalProperty.find(:first, :conditions => {:property => "remote_demographics_servers"}).property_value.split(/,/) rescue nil
+
+    servers = GlobalProperty.find(:first, :conditions => {:property => "remote_servers.parent"}).property_value.split(/,/) rescue nil
+
+    server_address_and_port = servers.to_s.split(':')
+
+    server_address = server_address_and_port.first
+    server_port = server_address_and_port.second
+
     return nil if servers.blank?
 
     wget_base_command = "wget --quiet --load-cookies=cookie.txt --quiet --cookies=on --keep-session-cookies --save-cookies=cookie.txt"
@@ -383,9 +393,10 @@ class Person < ActiveRecord::Base
     # then pull down the demographics
     # TODO fix login/pass and location with something better
 
-    login = "mikmck"
-    password = "mike"
-    location = 8
+    login = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.username"}).property_value.split(/,/) rescue ""
+    password = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.password"}).property_value.split(/,/) rescue ""
+    location = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.location"}).property_value.split(/,/) rescue nil
+    machine = GlobalProperty.find(:first, :conditions => {:property => "remote_machine.account_name"}).property_value.split(/,/) rescue ''
 
     post_data = known_demographics
     post_data["_method"]="put"
@@ -395,9 +406,10 @@ class Person < ActiveRecord::Base
       "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost/session\"",
       "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost/people/demographics\""
     ]
+
     results = []
     servers.each{|server|
-      command = "ssh #{server} '#{local_demographic_lookup_steps.join(";\n")}'"
+      command = "ssh #{machine}@#{server_address} '#{local_demographic_lookup_steps.join(";\n")}'"
       output = `#{command}`
       results.push output if output and output.match /person/
     }
@@ -405,8 +417,18 @@ class Person < ActiveRecord::Base
     # Currently returning the longest result - assuming that it has the most information
     # Can't return multiple results because there will be redundant data from sites
     result = results.sort{|a,b|b.length <=> a.length}.first
+    result ? person = JSON.parse(result) : nil
+    #Stupid hack to structure the hash for openmrs 1.7
+    person["person"]["occupation"] = person["person"]["attributes"]["occupation"]
+    person["person"]["cell_phone_number"] = person["person"]["attributes"]["cell_phone_number"]
+    person["person"]["home_phone_number"] =  person["person"]["attributes"]["home_phone_number"]
+    person["person"]["office_phone_number"] = person["person"]["attributes"]["office_phone_number"]
+    person["person"]["attributes"].delete("occupation")
+    person["person"]["attributes"].delete("cell_phone_number")
+    person["person"]["attributes"].delete("home_phone_number")
+    person["person"]["attributes"].delete("office_phone_number")
 
-    result ? JSON.parse(result) : nil
+    person
 
   end
 
@@ -445,53 +467,100 @@ class Person < ActiveRecord::Base
                                          self.id,PersonAttributeType.find_by_name("Home Phone Number").id]).value rescue nil
 
     phone_numbers
+  end
+  
+  def self.create_remote(received_params)
+    #raise known_demographics.to_yaml
+
+    #Format params for BART
+     new_params = received_params[:person]
+     known_demographics = Hash.new()
+     new_params['gender'] == 'F' ? new_params['gender'] = "Female" : new_params['gender'] = "Male"
+
+       known_demographics = {
+                  "occupation"=>"#{new_params[:occupation]}",
+                   "patient_year"=>"#{new_params[:birth_year]}",
+                   "patient"=>{
+                    "gender"=>"#{new_params[:gender]}",
+                    "birthplace"=>"#{new_params[:addresses][:address2]}",
+                    "creator" => 1,
+                    "changed_by" => 1
+                    },
+                   "p_address"=>{
+                    "identifier"=>"#{new_params[:addresses][:state_province]}"},
+                   "home_phone"=>{
+                    "identifier"=>"#{new_params[:home_phone_number]}"},
+                   "cell_phone"=>{
+                    "identifier"=>"#{new_params[:cell_phone_number]}"},
+                   "office_phone"=>{
+                    "identifier"=>"#{new_params[:office_phone_number]}"},
+                   "patient_id"=>"",
+                   "patient_day"=>"#{new_params[:birth_day]}",
+                   "patientaddress"=>{"city_village"=>"#{new_params[:addresses][:city_village]}"},
+                   "patient_name"=>{
+                    "family_name"=>"#{new_params[:names][:family_name]}",
+                    "given_name"=>"#{new_params[:names][:given_name]}", "creator" => 1
+                    },
+                   "patient_month"=>"#{new_params[:birth_month]}",
+                   "patient_age"=>{
+                    "age_estimate"=>"#{new_params[:age_estimate]}"
+                    },
+                   "age"=>{
+                    "identifier"=>""
+                    },
+                   "current_ta"=>{
+                    "identifier"=>"#{new_params[:addresses][:county_district]}"}
+                  }
+
+
+    servers = GlobalProperty.find(:first, :conditions => {:property => "remote_servers.parent"}).property_value.split(/,/) rescue nil
+
+    server_address_and_port = servers.to_s.split(':')
+
+    server_address = server_address_and_port.first
+    server_port = server_address_and_port.second
+
+    return nil if servers.blank?
+
+    wget_base_command = "wget --quiet --load-cookies=cookie.txt --quiet --cookies=on --keep-session-cookies --save-cookies=cookie.txt"
+
+    login = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.username"}).property_value.split(/,/) rescue ''
+    password = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.password"}).property_value.split(/,/) rescue ''
+    location = GlobalProperty.find(:first, :conditions => {:property => "remote_bart.location"}).property_value.split(/,/) rescue nil
+    machine = GlobalProperty.find(:first, :conditions => {:property => "remote_machine.account_name"}).property_value.split(/,/) rescue ''
+    post_data = known_demographics
+    post_data["_method"]="put"
+
+    local_demographic_lookup_steps = [ 
+      "#{wget_base_command} -O /dev/null --post-data=\"login=#{login}&password=#{password}\" \"http://localhost/session\"",
+      "#{wget_base_command} -O /dev/null --post-data=\"_method=put&location=#{location}\" \"http://localhost/session\"",
+      "#{wget_base_command} -O - --post-data=\"#{post_data.to_param}\" \"http://localhost/patient/create_remote\""
+    ]
+
+    results = []
+    servers.each{|server|
+      command = "ssh #{machine}@#{server_address} '#{local_demographic_lookup_steps.join(";\n")}'"
+      output = `#{command}`
+      results.push output if output and output.match(/person/)
+    }
+    result = results.sort{|a,b|b.length <=> a.length}.first
+
+    result ? person = JSON.parse(result) : nil
+    begin
+        person["person"]["addresses"]["address1"] = "#{new_params[:addresses][:address1]}"
+        person["person"]["names"]["middle_name"] = "#{new_params[:names][:middle_name]}"
+        person["person"]["occupation"] = known_demographics["occupation"]
+        person["person"]["cell_phone_number"] = known_demographics["cell_phone"]["identifier"]
+        person["person"]["home_phone_number"] = known_demographics["home_phone"]["identifier"]
+        person["person"]["office_phone_number"] = known_demographics["office_phone"]["identifier"]
+        person["person"]["attributes"].delete("occupation")
+        person["person"]["attributes"].delete("cell_phone_number")
+        person["person"]["attributes"].delete("home_phone_number")
+        person["person"]["attributes"].delete("office_phone_number")
+    rescue
+    end   
+    person
 
   end
 
-  def self.update_demographics(params)
-    person = Person.find(params['person_id'])
-    
-    if params.has_key?('person')
-      params = params['person']
-    end
-    
-    address_params = params["addresses"]
-    names_params = params["names"]
-    patient_params = params["patient"]
-    person_attribute_params = params["attributes"]
-
-    params_to_process = params.reject{|key,value| key.match(/addresses|patient|names|attributes/) }
-    birthday_params = params_to_process.reject{|key,value| key.match(/gender/) }
-
-    person_params = params_to_process.reject{|key,value| key.match(/birth_|age_estimate/) }
-   
-    if !birthday_params.empty?
-      
-      if birthday_params["birth_year"] == "Unknown"
-        person.set_birthdate_by_age(birthday_params["age_estimate"])
-      else
-        person.set_birthdate(birthday_params["birth_year"], birthday_params["birth_month"], birthday_params["birth_day"])
-      end
-      
-      person.birthdate_estimated = 1 if params["birthdate_estimated"] == 'true'
-      person.save
-    end
-    
-    person.update_attributes(person_params) if !person_params.empty?
-    person.names.first.update_attributes(names_params) if names_params
-    person.addresses.first.update_attributes(address_params) if address_params
-
-    #update or add new person attribute
-    person_attribute_params.each{|attribute_type_name, attribute|
-      attribute_type = PersonAttributeType.find_by_name(attribute_type_name.humanize.titleize) || PersonAttributeType.find_by_name("Unknown id")
-      #find if attribute already exists
-      exists_person_attribute = PersonAttribute.find(:first, :conditions => ["person_id = ? AND person_attribute_type_id = ?", person.id, attribute_type.person_attribute_type_id]) rescue nil
-      if exists_person_attribute
-        exists_person_attribute.update_attributes({'value' => attribute})
-      else
-        person.person_attributes.create("value" => attribute, "person_attribute_type_id" => attribute_type.person_attribute_type_id)
-      end
-    } if person_attribute_params
-
-  end
 end

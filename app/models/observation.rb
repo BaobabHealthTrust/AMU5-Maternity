@@ -106,14 +106,6 @@ class Observation < ActiveRecord::Base
     "#{self.answer_string(tags)}"
   end
 
-  def formated_concept_name(tags=[])
-    formatted_name = self.concept_name.tagged(tags).name rescue nil
-    formatted_name ||= self.concept_name.name rescue nil
-    formatted_name ||= self.concept.concept_names.tagged(tags).first.name rescue nil
-    formatted_name ||= self.concept.concept_names.first.name rescue 'Unknown concept name'
-    "#{formatted_name.upcase}"
-  end
-
   def answer_string(tags=[])
     coded_answer_name = self.answer_concept.concept_names.typed(tags).first.name rescue nil
     coded_answer_name ||= self.answer_concept.concept_names.first.name rescue nil
@@ -166,4 +158,11 @@ class Observation < ActiveRecord::Base
     "#{formatted_name}:  #{Location.find(self.answer_string(tags)).name}"
   end
 
+  def to_s_location_name(tags=[])
+    formatted_name = self.concept_name.tagged(tags).name rescue nil
+    formatted_name ||= self.concept_name.name rescue nil
+    formatted_name ||= self.concept.concept_names.tagged(tags).first.name rescue nil
+    formatted_name ||= self.concept.concept_names.first.name rescue 'Unknown concept name'
+    "#{Location.find(self.answer_string(tags)).name}"
+  end
 end

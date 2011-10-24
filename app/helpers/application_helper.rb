@@ -1,8 +1,4 @@
-# Methods added to this helper will be available to all templates in the application
-
-require 'barby'
-require 'barby/outputter/rmagick_outputter'
-
+# Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
   def link_to_onmousedown(name, options = {}, html_options = nil, *parameters_for_method_reference)
     html_options = Hash.new if html_options.nil?
@@ -154,7 +150,7 @@ module ApplicationHelper
   
   def concept_set_options(concept_name)
     concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
-                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
+                                  :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?",concept_name]).concept_id
     set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
     options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname, item.concept.fullname] }
     options_for_select(options)
@@ -162,7 +158,7 @@ module ApplicationHelper
   
    def concept_set(concept_name)
     concept_id = ConceptName.find(:first,:joins =>"INNER JOIN concept USING (concept_id)",
-                                  :conditions =>["retired = 0 AND name = ?",concept_name]).concept_id
+                                  :conditions =>["voided = 0 AND concept.retired = 0 AND name = ?",concept_name]).concept_id
     set = ConceptSet.find_all_by_concept_set(concept_id, :order => 'sort_weight')
     options = set.map{|item|next if item.concept.blank? ; [item.concept.fullname] }
     return options
