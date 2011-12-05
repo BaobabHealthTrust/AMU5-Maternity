@@ -1,0 +1,1 @@
+INSERT INTO global_property (property, property_value, description) VALUES ("facility.ward.printers", "127.0.0.1:antenatal,192.168.6.175:labour1", "Sample Associations. To be changed based on site needs.") ON DUPLICATE KEY UPDATE property = "facility.ward.printers";

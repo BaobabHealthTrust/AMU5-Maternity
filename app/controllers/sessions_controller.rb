@@ -20,6 +20,39 @@ class SessionsController < ApplicationController
 
   # Form for entering the location information
   def location
+    @location_name = GlobalProperty.find_by_property('facility.name').property_value rescue ""
+
+    @wards = GlobalProperty.find_by_property('facility.login_wards').property_value.split(',') rescue []
+
+    @login_wards = [' ']
+
+    @wards.each{|ward|
+      if @location_name.upcase.eql?("KAMUZU CENTRAL HOSPITAL")
+
+        if !ward.upcase.eql?("POST-NATAL WARD (LOW RISK)") && !ward.upcase.eql?("POST-NATAL WARD (HIGH RISK)")
+          @login_wards << ward
+        end
+
+      elsif @location_name.upcase.eql?("BWAILA MATERNITY UNIT")
+
+        if !ward.upcase.eql?("POST-NATAL WARD") && !ward.upcase.eql?("Gynaecology Ward".upcase)
+          @login_wards << ward
+        end
+
+      end
+    }
+
+    if !@location_name.blank?
+      location = Location.find_by_name(@location_name).location_id rescue nil
+
+      if !location.nil?
+        @location = location
+      else
+        @location = ""
+      end
+    else
+      @location = ""
+    end
   end
 
   # Update the session with the location information

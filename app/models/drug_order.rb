@@ -65,7 +65,9 @@ class DrugOrder < ActiveRecord::Base
   
   # prn should be 0 | 1
   def self.write_order(encounter, patient, obs, drug, start_date, auto_expire_date, dose, frequency, prn, instructions = nil, equivalent_daily_dose = nil)
-    encounter ||= patient.current_treatment_encounter
+    user_person_id = encounter.provider_id
+
+    #encounter ||= patient.current_treatment_encounter(start_date, user_person_id)
     units = drug.units || 'per dose'
     duration = (auto_expire_date.to_date - start_date.to_date).to_i rescue nil
     equivalent_daily_dose = nil
