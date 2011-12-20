@@ -5,7 +5,7 @@
 </style>
 
 <script>
-  var tt_cancel_destination = "/patients/programs_dashboard/<%= @patient.patient_id %>"
+  var tt_cancel_destination = "/patients/show/<%= @patient.patient_id %>"
   var program_date_completed = "<%= @program_date_completed %>"
 
   var current_state_input_box = null
@@ -64,6 +64,11 @@
   <%= hidden_field_tag :patient_program_id, @patient_program_id %>
   <%= hidden_field_tag :location_id, Location.current_health_center.id %>
 
+  <%= hidden_field_tag "encounter[encounter_type_name]", "UPDATE OUTCOME" %>
+  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
+  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
+  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
+  
   <%= select_tag 'current_state', params[:current_state],
       {:id => 'initial_state',
        :field_type => 'alpha',
@@ -112,10 +117,5 @@
        :condition => "current_state_input_box.value == 'PATIENT TRANSFERRED OUT'",
        :helpText => "Transfer within responsibility (e.g. District)" } %>
 
-
-  <%= hidden_field_tag "encounter[encounter_type_name]", "TRANSFER OUT" %>
-  <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
-  <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
-  <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
 </form>
 

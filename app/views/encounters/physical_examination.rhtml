@@ -1,5 +1,5 @@
 <script>
-  var tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.patient_id %>"
+  var tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
   var timedEvent;
 
   function setDate(elementId){
@@ -186,9 +186,9 @@
     :allowFreeText => 'true',
   } %>
 
-  <%= hidden_field_tag "next_url", "/encounters/new/observations/?patient_id=#{@patient.id}" %>
+  <%= hidden_field_tag "next_url", "/patients/admissions_dashboard/?patient_id=#{@patient.id}" %>
 
-  <%= hidden_field_tag "encounter[encounter_type_name]", "OBSERVATIONS" %>
+  <%= hidden_field_tag "encounter[encounter_type_name]", "PHYSICAL EXAMINATION" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
   <%= hidden_field_tag "encounter[encounter_datetime]", DateTime.now() %>
   <%= hidden_field_tag "encounter[provider_id]", session[:user_id] %>
@@ -378,4 +378,11 @@
   <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
   <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
 
+  <% if @retrospective %>
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+      <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+  <% else %>
+    <%= hidden_field_tag "filter[provider]", nil %>
+  <%end%>
+    
 </form>

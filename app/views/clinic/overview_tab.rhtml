@@ -13,7 +13,7 @@
     text-align:center;
   }
   .odd {
-    background-color: #eee;
+    background-color: #eeeef7;
   }
 
   #table_div {
@@ -27,11 +27,11 @@
 
 </style>
 <div id="tab" style="">
-  <h2>Current Patient Statistics</h2>
+  <h2 style="text-align: center; color: #6281a7;">Current Patient Statistics</h2>
     <div id="table_div">
 
     <table id="stats" cellpadding="14">
-      <tr style="color: #fff; background-color: #666;">
+      <tr style="color: #fff; background-color: #6281a7;">
         <th style="text-align:left;">Task Type</th>
         <th>Me</th>
         <th>Today</th>
@@ -40,7 +40,7 @@
       </tr>
       <% @types.each do |type| %>
         <tr class="<%= cycle('even', 'odd') %>">
-          <td style="text-align:left;"><%= type %></td>
+          <td style="text-align:left;"><%= (type.titleize == "Refer Patient Out?" ? "Referrals - Out" : type.titleize) %></td>
           <td><%= @me[type].to_i %></td>
           <td><%= @today[type].to_i %></td>
           <td><%= @year[type].to_i %></td>

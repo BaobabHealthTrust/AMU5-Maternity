@@ -43,7 +43,7 @@ class ProgramsController < ApplicationController
       :start_date => params[:initial_date]) 
     if @patient_program.save && @patient_state.save
       redirect_to session[:return_to] and return unless session[:return_to].blank?
-      redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => @patient.patient_id
+      redirect_to :controller => :patients, :action => :show, :patient_id => @patient.patient_id
     else 
       flash.now[:error] = @patient_program.errors.full_messages.join(". ")
       render :action => "new"
@@ -197,7 +197,7 @@ class ProgramsController < ApplicationController
         end
         #for import
          unless params[:location]
-            redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id]
+            redirect_to :controller => :patients, :action => :show, :patient_id => params[:patient_id]
          else
             render :text => "import suceeded" and return
          end
@@ -205,7 +205,7 @@ class ProgramsController < ApplicationController
       else
         #for import
         unless params[:location]
-          redirect_to :controller => :patients, :action => :programs_dashboard, :patient_id => params[:patient_id],:error => "Unable to update state"
+          redirect_to :controller => :patients, :action => :show, :patient_id => params[:patient_id],:error => "Unable to update state"
         else
             render :text => "import suceeded" and return
         end

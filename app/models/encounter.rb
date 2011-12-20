@@ -11,6 +11,7 @@ class Encounter < ActiveRecord::Base
 
   # TODO, this needs to account for current visit, which needs to account for possible retrospective entry
   named_scope :current, :conditions => 'DATE(encounter.encounter_datetime) = CURRENT_DATE()'
+  named_scope :active, :conditions => 'encounter.voided = 0'
 
   def before_save
     self.provider = User.current_user.person if self.provider.blank?
@@ -58,7 +59,7 @@ EOF
       weight = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("WEIGHT (KG)") || obs.concept.concept_names.map(&:name).include?("Weight (kg)") && "#{obs.answer_string}".upcase != '0.0' }
       height = observations.select {|obs| obs.concept.concept_names.map(&:name).include?("HEIGHT (CM)") || obs.concept.concept_names.map(&:name).include?("Height (cm)") && "#{obs.answer_string}".upcase != '0.0' }
       vitals = [weight_str = weight.first.answer_string + 'KG' rescue 'UNKNOWN WEIGHT',
-                height_str = height.first.answer_string + 'CM' rescue 'UNKNOWN HEIGHT']
+        height_str = height.first.answer_string + 'CM' rescue 'UNKNOWN HEIGHT']
       temp_str = temp.first.answer_string + '°C' rescue nil
       vitals << temp_str if temp_str                          
       vitals.join(', ')
@@ -73,9 +74,9 @@ EOF
     encounter_types_hash = encounter_types.inject({}) {|result, row| result[row.encounter_type_id] = row.name; result }
     with_scope(:find => opts) do
       rows = self.all(
-         :select => 'count(*) as number, encounter_type', 
-         :group => 'encounter.encounter_type',
-         :conditions => ['encounter_type IN (?)', encounter_types.map(&:encounter_type_id)]) 
+        :select => 'count(*) as number, encounter_type', 
+        :group => 'encounter.encounter_type',
+        :conditions => ['encounter_type IN (?)', encounter_types.map(&:encounter_type_id)]) 
       return rows.inject({}) {|result, row| result[encounter_types_hash[row['encounter_type']]] = row['number']; result }
     end     
   end

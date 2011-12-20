@@ -25,8 +25,10 @@ class ApplicationController < ActionController::Base
   helper :all
   helper_method :next_task
   filter_parameter_logging :password
-  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote', 'mastercard_printable']
-  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote', 'mastercard_printable']
+  before_filter :login_required, :except => ['login', 'logout','demographics','create_remote', 
+    'mastercard_printable', 'observations_printable', 'cohort_print']
+  before_filter :location_required, :except => ['login', 'logout', 'location','demographics','create_remote', 
+    'mastercard_printable', 'observations_printable', 'cohort_print']
   
   def rescue_action_in_public(exception)
     @message = exception.message
@@ -1301,6 +1303,8 @@ private
 
   def find_patient
     @patient = Patient.find(params[:patient_id] || session[:patient_id] || params[:id]) rescue nil
+    @MaternityPatient = MaternityService::Maternity.new(@patient) rescue nil
+    @patient_bean = PatientService.get_patient(@patient.person) rescue nil
   end
 
 end

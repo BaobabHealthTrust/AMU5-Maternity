@@ -113,7 +113,7 @@
     :allowFreeText => 'true',
   } %>
 
-  <%= hidden_field_tag "next_url", "/encounters/new/observations/?patient_id=#{@patient.id}" %>
+  <%= hidden_field_tag "next_url", "/patients/admissions_dashboard/?patient_id=#{@patient.id}" %>
 
   <%= hidden_field_tag "encounter[encounter_type_name]", "ADMIT PATIENT" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -145,6 +145,12 @@
         "$('admission_date_value_datetime').value.trim() + ' ' + $('admission_time').value.trim();"
     }) %>
 
+  <%    
+      if !session[:datetime] 
+        options[:maxNow] = "true"
+      end
+  %>
+  
   <%= text_field_tag("admission_time",Time.now().strftime("%H:%M"),options) %>
 
   <%= hidden_field_tag("observations[][concept_name]", 'ADMISSION TIME', {:id => 'admission_time_concept_name'}) %>
@@ -299,29 +305,12 @@
   <%#= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
   <%#= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
   <%#= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-  
-  
-  <% options = default.merge({
-      :id => "impression",
-      :helptext => "Impression",
-      :field_type => "text",
-      :optional => true
-    }) %>
 
-  <%= hidden_field_tag("observations[][concept_name]",  "IMPRESSION", {:id => 'impression_concept_name'}) %>
-  <%= text_area_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
-
-  <% options = default.merge({
-      :id => "plan",
-      :helptext => "Plan",
-      :field_type => "text",
-      :optional => true
-    }) %>
-
-  <%= hidden_field_tag("observations[][concept_name]",  "PLAN", {:id => 'plan_concept_name'}) %>
-  <%= text_area_tag("observations[][value_coded_or_text]", nil,options) %>
-  <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
-  <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
+  <% if @retrospective %>
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+      <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+  <% else %>
+    <%= hidden_field_tag "filter[provider]", nil %>
+  <%end%>
+    
 </form>

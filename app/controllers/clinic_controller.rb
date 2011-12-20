@@ -1,6 +1,6 @@
 class ClinicController < ApplicationController
   def index
-    @facility = Location.current_health_center.name rescue ''
+    @facility = GlobalProperty.find_by_property("facility.name").property_value rescue ''
 
     @location = Location.find(session[:location_id]).name rescue ""
 
@@ -20,8 +20,11 @@ class ClinicController < ApplicationController
       ["Data Cleaning Tools", "/report/data_cleaning"],
       ["Stock report","/drug/date_select"]
     ]
+    @location = Location.find(session[:facility]).name rescue ""
 
-    render :template => 'clinic/reports', :layout => 'clinic' 
+    render :layout => false
+    
+    # render :template => 'clinic/reports', :layout => 'clinic' 
   end
 
   def supervision
@@ -68,10 +71,10 @@ class ClinicController < ApplicationController
 
   def administration
     @reports =  [
-                  ['/clinic/users','User accounts/settings'],
-                  ['/clinic/management','Drug Management'], 
-                  ['/clinic/location_management','Location Management']
-                ]
+      ['/clinic/users','User accounts/settings'],
+      ['/clinic/management','Drug Management'], 
+      ['/clinic/location_management','Location Management']
+    ]
     @landing_dashboard = 'clinic_administration'
     render :template => 'clinic/administration', :layout => 'clinic' 
   end
@@ -86,7 +89,7 @@ class ClinicController < ApplicationController
       end
     end
 
-    @types = CoreService.get_global_property_value("statistics.show_encounter_types") rescue EncounterType.all.map(&:name).join(",")
+    @types = CoreService.get_global_property_value("statistics.show_encounter_types") # rescue EncounterType.all.map(&:name).join(",")
     @types = @types.split(/,/)
 
     @me = Encounter.statistics(@types, :conditions => ['DATE(encounter_datetime) = DATE(NOW()) AND encounter.creator = ?', User.current_user.user_id])
@@ -100,8 +103,8 @@ class ClinicController < ApplicationController
     @user = User.find(session[:user_id]).person.name rescue ""
 
     if simple_overview
-        render :template => 'clinic/overview_simple.rhtml' , :layout => false
-        return
+      render :template => 'clinic/overview_simple.rhtml' , :layout => false
+      return
     end
     render :layout => false
   end
@@ -115,13 +118,13 @@ class ClinicController < ApplicationController
 
     @reports = [
       ["Diagnosis","/drug/date_select?goto=/report/age_group_select?type=diagnosis"],
-     # ["Patient Level Data","/drug/date_select?goto=/report/age_group_select?type=patient_level_data"],
+      # ["Patient Level Data","/drug/date_select?goto=/report/age_group_select?type=patient_level_data"],
       ["Disaggregated Diagnosis","/drug/date_select?goto=/report/age_group_select?type=disaggregated_diagnosis"],
       ["Referrals","/drug/date_select?goto=/report/opd?type=referrals"],
       #["Total Visits","/drug/date_select?goto=/report/age_group_select?type=total_visits"],
       #["User Stats","/drug/date_select?goto=/report/age_group_select?type=user_stats"],
       ["User Stats","/"],
-     # ["Total registered","/drug/date_select?goto=/report/age_group_select?type=total_registered"],
+      # ["Total registered","/drug/date_select?goto=/report/age_group_select?type=total_registered"],
       ["Diagnosis (By address)","/drug/date_select?goto=/report/age_group_select?type=diagnosis_by_address"],
       ["Diagnosis + demographics","/drug/date_select?goto=/report/age_group_select?type=diagnosis_by_demographics"]
     ] if Location.current_location.name.match(/Outpatient/i)
@@ -130,12 +133,12 @@ class ClinicController < ApplicationController
 
   def data_cleaning_tab
     @reports = [
-                 ['Missing Prescriptions' , '/cohort_tool/select?report_type=dispensations_without_prescriptions'],
-                 ['Missing Dispensations' , '/cohort_tool/select?report_type=prescriptions_without_dispensations'],
-                 ['Multiple Start Reasons' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
-                 ['Out of range ARV number' , '/cohort_tool/select?report_type=out_of_range_arv_number'],
-                 ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check']
-               ] 
+      ['Missing Prescriptions' , '/cohort_tool/select?report_type=dispensations_without_prescriptions'],
+      ['Missing Dispensations' , '/cohort_tool/select?report_type=prescriptions_without_dispensations'],
+      ['Multiple Start Reasons' , '/cohort_tool/select?report_type=patients_with_multiple_start_reasons'],
+      ['Out of range ARV number' , '/cohort_tool/select?report_type=out_of_range_arv_number'],
+      ['Data Consistency Check' , '/cohort_tool/select?report_type=data_consistency_check']
+    ] 
     render :layout => false
   end
 
@@ -157,10 +160,10 @@ class ClinicController < ApplicationController
 
   def administration_tab
     @reports =  [
-                  ['/clinic/users_tab','User Accounts/Settings'],
-                  ['/clinic/location_management_tab','Location Management'],
-                  ['/people/tranfer_patient_in','Transfer Patient in']
-                ]
+      ['/clinic/users_tab','User Accounts/Settings'],
+      ['/clinic/location_management_tab','Location Management'],
+      ['/people/tranfer_patient_in','Transfer Patient in']
+    ]
     if User.current_user.admin?
       @reports << ['/clinic/management_tab','Drug Management']
     end
@@ -170,11 +173,11 @@ class ClinicController < ApplicationController
 
   def supervision_tab
     @reports = [
-                 ["Data that was Updated","/cohort_tool/select?report_type=summary_of_records_that_were_updated"],
-                 ["Drug Adherence Level","/cohort_tool/select?report_type=adherence_histogram_for_all_patients_in_the_quarter"],
-                 ["Visits by Day", "/cohort_tool/select?report_type=visits_by_day"],
-                 ["Non-eligible Patients in Cohort", "/cohort_tool/select?report_type=non_eligible_patients_in_cohort"]
-               ]
+      ["Data that was Updated","/cohort_tool/select?report_type=summary_of_records_that_were_updated"],
+      ["Drug Adherence Level","/cohort_tool/select?report_type=adherence_histogram_for_all_patients_in_the_quarter"],
+      ["Visits by Day", "/cohort_tool/select?report_type=visits_by_day"],
+      ["Non-eligible Patients in Cohort", "/cohort_tool/select?report_type=non_eligible_patients_in_cohort"]
+    ]
     @landing_dashboard = 'clinic_supervision'
     render :layout => false
   end
@@ -185,17 +188,17 @@ class ClinicController < ApplicationController
 
   def location_management
     @reports =  [
-                  ['/location/new?act=create','Add location'],
-                  ['/location.new?act=delete','Delete location'], 
-                  ['/location/new?act=print','Print location']
-                ]
+      ['/location/new?act=create','Add location'],
+      ['/location.new?act=delete','Delete location'], 
+      ['/location/new?act=print','Print location']
+    ]
     render :template => 'clinic/location_management', :layout => 'clinic' 
   end
 
   def location_management_tab
     @reports =  [
-                  ['/location/new?act=print','Print location']
-                ]
+      ['/location/new?act=print','Print location']
+    ]
     if User.current_user.admin?
       @reports << ['/location/new?act=create','Add location']
       @reports << ['/location/new?act=delete','Delete location']

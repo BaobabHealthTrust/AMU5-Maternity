@@ -102,7 +102,7 @@ module PatientService
   def self.phone_numbers(person_obj)
     phone_numbers = {}
 
-    phone_numbers['Cell phone number'] = self.get_attribute(person_obj, 'Cell phone number') rescue nil
+    phone_numbers['Cell phone number'] = self.get_attribute(person_obj, 'Cell phone number') # rescue nil
     phone_numbers['Office phone number'] = self.get_attribute(person_obj, 'Office phone number') rescue nil
     phone_numbers['Home phone number'] = self.get_attribute(person_obj, 'Home phone number') rescue nil
 
@@ -628,6 +628,7 @@ EOF
     patient = PatientBean.new('')
     patient.person_id = person.id
     patient.patient_id = person.patient.id
+    patient.id = person.patient.id
     patient.arv_number = get_patient_identifier(person.patient, 'ARV Number')
     patient.address = person.addresses.first.city_village
     patient.national_id = get_patient_identifier(person.patient, 'National id')    
@@ -649,6 +650,8 @@ EOF
     patient.filing_number = get_patient_identifier(person.patient, 'Filing Number')
     patient.occupation = get_attribute(person, 'Occupation')
     patient.guardian = art_guardian(person.patient) rescue nil 
+    patient.first_name = person.names.last.given_name
+    patient.last_name = person.names.last.family_name
     patient
   end
   

@@ -1,7 +1,5 @@
 <script>
-  tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
-  tt_cancel_show = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
-
+  var tt_cancel_destination = "/patients/admissions_dashboard/?patient_id=<%=  @patient.id %>"
   var timedEvent;
 
   function setDate(elementId){
@@ -115,7 +113,7 @@
     :allowFreeText => 'true',
   } %>
 
-  <%= hidden_field_tag "next_url", "/encounters/new/observations/?patient_id=#{@patient.id}" %>
+  <%= hidden_field_tag "next_url", "/patients/admissions_dashboard/?patient_id=#{@patient.id}" %>
 
   <%= hidden_field_tag "encounter[encounter_type_name]", "VITALS" %>
   <%= hidden_field_tag "encounter[patient_id]", @patient.id %>
@@ -184,18 +182,12 @@
 
   <% options = default.merge({
       :id => "temperature",
-      :helptext => "Temperature (c)",
+      :helptext => "Temperature",
       :field_type => "number",
-      :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal",
-      :allowFreeText => 'true',
-      :min => 20,
-      :max => 45,
-      :units => 'Celcuis',
-      :validationRule => "([0-9]+\\.[0-9])|Unknown$",
-      :validationMessage => "You must enter a decimal between 0 and 9 (for example: 36<b>.6</b>)",
-      :tt_pageStyleClass => "Numeric NumbersOnlyWithDecimal"}) %>
+      :tt_pageStyleClass => "NumbersOnlyWithDecimal"
+    }) %>
 
-  <%= hidden_field_tag("observations[][concept_name]",  "TEMPERATURE", {:id => 'temperature'}) %>
+  <%= hidden_field_tag("observations[][concept_name]",  "TEMPERATURE", {:id => 'temperature_concept_name'}) %>
   <%= text_field_tag("observations[][value_coded_or_text]", nil,options) %>
   <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
   <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
@@ -214,4 +206,11 @@
   <%= hidden_field_tag("observations[][patient_id]",    @patient.id) %>
   <%= hidden_field_tag("observations[][obs_datetime]",  DateTime.now()) %>
 
+  <% if @retrospective %>
+    <p><label for="filter_provider">Staff who provided the information (Provider)</label></br>
+      <%= text_field "filter" , 'provider', :helpText => 'Staff who provided the information (Provider)', :ajaxURL => '/user/username?username=' %></p>
+  <% else %>
+    <%= hidden_field_tag "filter[provider]", nil %>
+  <%end%>
+    
 </form>

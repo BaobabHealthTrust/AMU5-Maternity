@@ -4,7 +4,7 @@
 <script src="/javascripts/touchscreenYesNo.js" type="text/javascript"></script>
 <script type="text/javascript">
   function select(node) {
-    $('#observations').empty().load('/encounters/observations/' + node.attr('encounter'))
+    $('#observations').empty().load('/encounters/patient_observations/' + node.attr('encounter'))
     $('#encounters li.data').removeClass("active");
     node.addClass("active");
   }
@@ -29,31 +29,46 @@
     if (recent) select(recent);
   })
 </script>
-  <div id="encounters" style="border: 1px solid #eee; padding: 10px; -moz-border-radius: 15px;">
-    <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
-    <h2 style="margin: 0px;"><%=current_day %>'s Visit summary</h2>
-    
-    <div  style="display: table; width: 99%;">
-      <div  style="display: table-row;">
-        <div style="display: table-cell; width: 50%; padding: 10px; vertical-align: top;">
-          <ul class="list" style="clear:both; height: 230px;">
-            <% for encounter in @encounters.reverse do %>
-                <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
-                  <div class="void"><img src="/images/cancel_flat_small.png"/></div>
-                  <% if encounter.name.humanize.include?('Hiv') %>
-                    <div class="encounter"><%=h encounter.name.humanize.gsub('Hiv','HIV') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
-                  <% else %>
-                    <div class="encounter"><%=h encounter.name.humanize.gsub('Art','ART') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
-                  <% end %>
-                </li>
-              <% end %>
-            </ul>
-          </div>
-          <div style="display: table-cell; width: 50%; padding: 10px;">
-            <ul id="observations" class="list small" style="height: 230px;">
-            </ul>
-          </div>
+
+<style type="text/css">
+  .list {
+    -moz-border-radius: 15px;
+  }
+  
+  #observations {
+    border: 1px #6281a7 solid;    
+  }
+  
+  #main {
+    border: 1px #6281a7 solid;    
+  }
+</style>
+
+<div id="encounters" style="border: 1px solid #eee; padding: 10px; -moz-border-radius: 15px;">
+  <% current_day = session[:datetime].strftime('%Y-%m-%d') rescue 'Today'%>
+  <h2 style="margin: 0px; color: #6281a7;"><%=current_day %>'s Visit summary</h2>
+
+  <div  style="display: table; width: 100%;">
+    <div  style="display: table-row;">
+      <div style="display: table-cell; width: 50%; padding: 10px; vertical-align: top;">
+        <ul id="main" class="list" style="clear:both; height: 255px;">
+          <% for encounter in @encounters.reverse do %>
+              <li class="data <%= cycle('even', 'odd') %>" encounter="<%= encounter.id %>">
+                <div class="void"><img src="/images/cancel_flat_small.png"/></div>
+                <% if encounter.name.humanize.include?('Hiv') %>
+                  <div class="encounter"><%=h encounter.name.humanize.gsub('Hiv','HIV') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
+                <% else %>
+                  <div class="encounter"><%=h encounter.name.humanize.gsub('Art','ART') %> at <%=h encounter.encounter_datetime.strftime("%k:%M") %></div>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+        <div style="display: table-cell; width: 50%; padding: 10px;">
+          <ul id="observations" class="list small" style="height: 255px;">
+          </ul>
         </div>
       </div>
-    
     </div>
+
+  </div>

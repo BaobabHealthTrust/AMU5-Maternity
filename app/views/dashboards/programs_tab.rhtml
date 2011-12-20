@@ -46,13 +46,25 @@
   h2 {
     margin: 0px;
   }
+  
+  .list {
+    -moz-border-radius: 15px;
+  }
+  
+  #programs {
+    border: 1px #6281a7 solid;    
+  }
+  
+  #states {
+    border: 1px #6281a7 solid;    
+  }
 </style>
 
 <div style="display: table; width: 98%; border-spacing: 10px;">
   <div style="display: table-row;">
     <div style="display: table-cell; width: 50%;">
 
-      <h2>Programs (possibly filtered)</h2>
+      <h2 style="color: #6281a7;">Programs (possibly filtered)</h2>
       <ul id="programs" class="list" style="width:100%; height: 210px;">
         <% for program in @programs do %>
             <li class="data <%= cycle('even', 'odd') %>" program="<%= program.id %>">
@@ -69,7 +81,7 @@
       </div>
       <div style="display: table-cell; width: 50%;">
 
-        <h2>Outcomes</h2>
+        <h2 style="color: #6281a7;">Outcomes</h2>
         <ul id="states" class="list" style="width:100%; height: 210px;">
         </ul>
         <!-- button id="status" class="silver" style="float:right;margin-top:10px;"><span>New Status</span></button -->
