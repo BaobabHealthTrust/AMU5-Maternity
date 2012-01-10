@@ -20,61 +20,33 @@ class SessionsController < ApplicationController
 
   # Form for entering the location information
   def location
-    @location_name = GlobalProperty.find_by_property('facility.name').property_value rescue ""
-
-    @wards = GlobalProperty.find_by_property('facility.login_wards').property_value.split(',') rescue []
-
-    @login_wards = [' ']
-
-    @wards.each{|ward|
-      if @location_name.upcase.eql?("KAMUZU CENTRAL HOSPITAL")
-
-        if !ward.upcase.eql?("POST-NATAL WARD (LOW RISK)") && !ward.upcase.eql?("POST-NATAL WARD (HIGH RISK)")
-          @login_wards << ward
-        end
-
-      elsif @location_name.upcase.eql?("BWAILA MATERNITY UNIT")
-
-        if !ward.upcase.eql?("POST-NATAL WARD") && !ward.upcase.eql?("Gynaecology Ward".upcase)
-          @login_wards << ward
-        end
-
-      end
-    }
-
-    if !@location_name.blank?
-      location = Location.find_by_name(@location_name).location_id rescue nil
-
-      if !location.nil?
-        @location = location
-      else
-        @location = ""
-      end
-    else
-      @location = ""
-    end
+    @login_wards = (CoreService.get_global_property_value('facility.login_wards')).split(',') rescue []
+	if (CoreService.get_global_property_value('select_login_location').to_s == "true" rescue false)
+	    render :template => 'sessions/select_location'
+	end
   end
 
-  # Update the session with the location information
-  def update    
-    # First try by id, then by name
-    location = Location.find(params[:location]) rescue nil
-    location ||= Location.find_by_name(params[:location]) rescue nil
+	# Update the session with the location information
+	def update    
+		# First try by id, then by name
+		location = Location.find(params[:location]) rescue nil
+		location ||= Location.find_by_name(params[:location]) rescue nil
 
-    valid_location = (generic_locations.include?(location.name)) rescue false
+		valid_location = (generic_locations.include?(location.name)) rescue false
 
-    unless location and valid_location
-      flash[:error] = "Invalid workstation location"
-      render :action => 'location'
-      return    
-    end
-    self.current_location = location
-    if use_user_selected_activities and not location.name.match(/Outpatient/i)
-      redirect_to "/user/activities/#{User.current_user.id}"
-    else
-      redirect_to '/clinic'
-    end
-  end
+		unless location and valid_location
+			flash[:error] = "Invalid workstation location"
+			@login_wards = (CoreService.get_global_property_value('facility.login_wards')).split(',') rescue []
+			render :action => 'location'
+			return    
+		end
+		self.current_location = location
+		if use_user_selected_activities and not location.name.match(/Outpatient/i)
+			redirect_to "/user/activities/#{User.current_user.id}"
+		else
+			redirect_to '/clinic'
+		end
+	end
 
   def destroy
     logout_killing_session!

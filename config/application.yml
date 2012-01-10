@@ -7,6 +7,8 @@ development:
  use.user.selected.activities: false
  vitals.blood_pressure: true
  advanced.prescription.interface: true
+ facility.login_wards: Post-natal ward,Post-natal-ward (high risk),Maternity ward,Registration
+ select_login_location: true
 
 test: &TEST
  create_from_remote: no
