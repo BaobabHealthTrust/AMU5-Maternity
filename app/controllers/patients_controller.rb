@@ -723,7 +723,7 @@ class PatientsController < ApplicationController
   end
 
   def next_task_description
-    @task = Task.find(params[:task_id])
+    @task = Task.find(params[:task_id]) rescue Task.new
     render :template => 'dashboards/next_task_description', :layout => false
   end
 

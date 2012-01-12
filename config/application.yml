@@ -3,6 +3,7 @@ production:
  use.user.selected.activities: yes
 
 development:
+ encounter_privilege_map: Admit patient:Manage patient admissions,Discharge patient:Manage patient discharges,Admission diagnosis:Manage Admission Diagnoses,Discharge diagnosis:Manage Discharge Diagnoses,Update hiv status:Manage HIV Status Visits,Obstetric history:Manage Obstetric History,Vitals:Manage Vitals,Give drugs:Manage Give Drugs,Lab orders:Manage Lab Orders,Vaginal examination:Manage vaginal examinations,Notes:Manage Notes,Physical examination:Manage Physical Examinations
  create_from_remote: no
  use.user.selected.activities: false
  vitals.blood_pressure: true

@@ -87,9 +87,9 @@
           </button>
         </div>
         <div style="display: table-cell">
-          <button class="<%= (@encounters.include?("OBSERVATIONS") ? "gray" : "blue") %>"
-                  onclick="<%= (@encounters.include?("OBSERVATIONS") ? "" :
-                      "window.location = '/encounters/new/observations?patient_id=#{@patient.id}'") %> ">
+          <button class="<%= (@encounters.include?("NOTES") ? "gray" : "blue") %>"
+                  onclick="<%= (@encounters.include?("NOTES") ? "" :
+                      "window.location = '/encounters/new/notes?patient_id=#{@patient.id}'") %> ">
             <span>Notes</span>
           </button>
         </div>
